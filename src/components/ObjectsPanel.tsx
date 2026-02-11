@@ -120,7 +120,8 @@ interface PropertyRowProps {
 function PropertyRow({ label, hasColorDot, onMouseEnter, onMouseLeave, className }: PropertyRowProps) {
   return (
     <div
-      className={`border-b border-black/20 flex items-center p-4 w-full cursor-pointer ${className || ''}`}
+      className={`flex items-center p-4 w-full cursor-pointer ${className || ''}`}
+      style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -220,7 +221,8 @@ function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onTogg
 
   return (
     <div
-      className="border-b border-black/20 py-2 px-4"
+      className="py-2 px-4"
+      style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onDragOver={handleDragOver}
@@ -328,7 +330,8 @@ function ExteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onT
 
   return (
     <div
-      className="border-b border-black/20 py-2 px-4"
+      className="py-2 px-4"
+      style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onDragOver={handleDragOver}
@@ -462,7 +465,8 @@ function InteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onT
 
   return (
     <div
-      className="border-b border-black/20 py-2 px-4"
+      className="py-2 px-4"
+      style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onDragOver={handleDragOver}
@@ -588,7 +592,8 @@ function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onTo
 
   return (
     <div
-      className="border-b border-black/20 py-2 px-4"
+      className="py-2 px-4"
+      style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onDragOver={handleDragOver}
@@ -891,7 +896,7 @@ export default function ObjectsPanel({
             {/* Scrollable sections */}
             <div className="flex flex-col">
               {/* Reference images section */}
-              <div className="border-b border-black/20 pt-2 pb-2 px-4">
+              <div className="pt-2 pb-2 px-4" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.2)' }}>
                 <div className="flex flex-col gap-4 pb-2">
                   <div
                     className="flex items-center cursor-pointer"
