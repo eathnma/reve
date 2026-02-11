@@ -61,7 +61,7 @@ export default function ObjectsPanel() {
       <div className="bg-white flex-1 overflow-auto">
         {activeTab === 'objects' ? (
           <div className="flex flex-col gap-[10px] pt-4">
-            <div className="flex flex-col gap-4 pb-4">
+            <div className="flex flex-col gap-4">
               {/* Description box */}
               <div className="px-4">
                 <div className="bg-[#f0f0f0] border border-[#dbdbdb] rounded-[13px] px-[15px] py-2">
