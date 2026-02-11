@@ -48,13 +48,13 @@ export default function Canvas() {
               <SelectionHandle className="-left-[5px] -bottom-[5px]" />
               <SelectionHandle className="-right-[5px] -top-[5px]" />
               <SelectionHandle className="-right-[5px] -bottom-[5px]" />
-            </div>
 
-            {/* Label tooltip */}
-            <div className="absolute left-1/2 -translate-x-1/2 -top-[30px] bg-[#484848] rounded-[2px] px-[6px] py-1">
-              <p className="text-[11px] text-white font-normal whitespace-nowrap">
-                House, Mobius House
-              </p>
+              {/* Label tooltip - 8px above selection box */}
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
+                <p className="text-[11px] text-white font-normal whitespace-nowrap">
+                  House, Mobius House
+                </p>
+              </div>
             </div>
           </div>
         </div>

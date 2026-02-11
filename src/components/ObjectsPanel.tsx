@@ -44,13 +44,13 @@ export default function ObjectsPanel() {
         <div className="flex gap-4 items-center w-[190px]">
           <button
             onClick={() => setActiveTab('objects')}
-            className={`text-base font-medium ${activeTab === 'objects' ? 'text-black' : 'text-black/50'}`}
+            className={`text-base font-medium cursor-pointer ${activeTab === 'objects' ? 'text-black' : 'text-black/50'}`}
           >
             Objects
           </button>
           <button
             onClick={() => setActiveTab('edit')}
-            className={`text-base font-medium ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
+            className={`text-base font-medium cursor-pointer ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
           >
             Edit
           </button>
