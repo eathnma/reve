@@ -46,7 +46,7 @@ export default function ChatPanel() {
       {/* Input bar */}
       <div className="flex flex-col items-start p-[10px] w-full">
         <div className="bg-[#f0f0f0] border border-[#d9d9d9] rounded-[32px] px-[21px] py-6 w-full flex items-end justify-between">
-          <div className="flex flex-col gap-6 items-start">
+          <div className="flex flex-col gap-6 items-start">1
             <p className="text-base text-black/60 font-normal">
               Ask Reve
             </p>
