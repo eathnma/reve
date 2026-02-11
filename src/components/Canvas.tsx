@@ -10,6 +10,14 @@ function SelectionHandle({ className }: { className?: string }) {
   );
 }
 
+function ObjectDot({ className }: { className?: string }) {
+  return (
+    <div className={`absolute w-[17px] h-[17px] pointer-events-none ${className}`}>
+      <div className="w-full h-full rounded-full bg-white border-2 border-black/20 shadow-md" />
+    </div>
+  );
+}
+
 export default function Canvas() {
   const [isSelected, setIsSelected] = useState(true);
 
@@ -73,9 +81,15 @@ export default function Canvas() {
               className="object-cover"
             />
 
+            {/* Object dots */}
+            <ObjectDot className="left-[274px] top-[44px]" />
+            <ObjectDot className="left-[555px] top-[105px]" />
+            <ObjectDot className="left-[317px] top-[232px]" />
+            <ObjectDot className="left-[316px] top-[327px]" />
+
             {/* Selection box - only show when selected */}
             {isSelected && (
-              <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[154px] pointer-events-none">
+              <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[154px] pointer-events-none animate-selection-appear">
                 <div className="absolute inset-0 border border-white" />
                 <SelectionHandle className="-left-[5px] -top-[5px]" />
                 <SelectionHandle className="-left-[5px] -bottom-[5px]" />

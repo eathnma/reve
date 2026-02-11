@@ -36,14 +36,15 @@ function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
 
 interface ObjectItemProps {
   name: string;
+  image: string;
 }
 
-function ObjectItem({ name }: ObjectItemProps) {
+function ObjectItem({ name, image }: ObjectItemProps) {
   return (
     <div className="flex gap-2 items-center w-full">
       <div className="w-8 h-8 rounded overflow-hidden relative flex-shrink-0">
         <Image
-          src="/images/object-thumb.jpg"
+          src={image}
           alt={name}
           fill
           className="object-cover"
@@ -86,11 +87,11 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
 
         <div className="flex flex-col gap-5 pt-4 px-4">
           <div className="cursor-pointer" onClick={onSelectObject}>
-            <ObjectItem name="House" />
+            <ObjectItem name="House" image="/images/canvas-house.jpg" />
           </div>
-          <ObjectItem name="Forest" />
-          <ObjectItem name="Sky" />
-          <ObjectItem name="Ground" />
+          <ObjectItem name="Forest" image="/images/canvas-house.jpg" />
+          <ObjectItem name="Sky" image="/images/canvas-house.jpg" />
+          <ObjectItem name="Ground" image="/images/canvas-house.jpg" />
         </div>
       </div>
     );
