@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 
 function ChevronRight() {
@@ -34,97 +35,113 @@ function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
 }
 
 export default function ObjectsPanel() {
+  const [activeTab, setActiveTab] = useState<'objects' | 'edit'>('objects');
+
   return (
     <div className="w-[319px] h-full border-b border-[#d9d9d9] flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-[#d9d9d9] h-[50px] flex items-center px-4">
         <div className="flex gap-4 items-center w-[190px]">
-          <p className="text-base text-black font-medium">Objects</p>
-          <p className="text-base text-black/50 font-medium">Edit</p>
+          <button
+            onClick={() => setActiveTab('objects')}
+            className={`text-base font-medium ${activeTab === 'objects' ? 'text-black' : 'text-black/50'}`}
+          >
+            Objects
+          </button>
+          <button
+            onClick={() => setActiveTab('edit')}
+            className={`text-base font-medium ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
+          >
+            Edit
+          </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="bg-white flex-1 overflow-auto">
-        <div className="flex flex-col gap-[10px] pt-4">
-          <div className="flex flex-col gap-4 pb-4">
-            {/* Description box */}
-            <div className="px-4">
-              <div className="bg-[#f0f0f0] border border-[#dbdbdb] rounded-[13px] px-[15px] py-2">
-                <p className="text-base text-black font-normal leading-[26px]">
-                  A modern, minimalist house with large windows, and a mix of light gray and light brown wood sliding. The interior of the house should be well lit, with fractions of the house partially covered by curtains.
-                </p>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-[#d9d9d9] w-full" />
-
-            {/* Reference images section */}
-            <div className="border-b border-black/20 pb-4 pt-1 px-4">
-              <div className="flex flex-col gap-3">
-                <div className="flex items-start justify-between">
-                  <p className="text-base text-black font-normal">Reference images</p>
-                  <button className="w-5 h-5 flex items-center justify-center">
-                    <Image
-                      src="/images/plus-small.svg"
-                      alt="Add"
-                      width={20}
-                      height={20}
-                    />
-                  </button>
+        {activeTab === 'objects' ? (
+          <div className="flex flex-col gap-[10px] pt-4">
+            <div className="flex flex-col gap-4 pb-4">
+              {/* Description box */}
+              <div className="px-4">
+                <div className="bg-[#f0f0f0] border border-[#dbdbdb] rounded-[13px] px-[15px] py-2">
+                  <p className="text-base text-black font-normal leading-[26px]">
+                    A modern, minimalist house with large windows, and a mix of light gray and light brown wood sliding. The interior of the house should be well lit, with fractions of the house partially covered by curtains.
+                  </p>
                 </div>
+              </div>
 
-                {/* Reference image cards */}
-                <div className="flex flex-col gap-2">
-                  {/* Mobius house card */}
-                  <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
-                    <div className="flex gap-4 items-center">
-                      <div className="w-[77px] h-[38px] rounded-[2px] overflow-hidden relative">
-                        <Image
-                          src="/images/mobius-house.jpg"
-                          alt="Mobius house"
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% to-black/90" />
-                      </div>
-                      <div className="flex flex-col w-[179px]">
-                        <p className="text-base text-black font-normal leading-6">Mobius house</p>
-                        <p className="text-base text-black/50 font-normal leading-6">Brutalism &amp; Concrete</p>
-                      </div>
-                    </div>
+              {/* Divider */}
+              <div className="h-px bg-[#d9d9d9] w-full" />
+
+              {/* Reference images section */}
+              <div className="border-b border-black/20 pb-4 pt-1 px-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between">
+                    <p className="text-base text-black font-normal">Reference images</p>
+                    <button className="w-5 h-5 flex items-center justify-center">
+                      <Image
+                        src="/images/plus-small.svg"
+                        alt="Add"
+                        width={20}
+                        height={20}
+                      />
+                    </button>
                   </div>
 
-                  {/* Interior card */}
-                  <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
-                    <div className="flex gap-4 items-center">
-                      <div className="w-[77px] h-[48px] flex items-center justify-center">
-                        <div className="w-[32px] h-[48px] rounded-[3px] border border-[#cfcfcf] overflow-hidden relative">
+                  {/* Reference image cards */}
+                  <div className="flex flex-col gap-2">
+                    {/* Mobius house card */}
+                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
+                      <div className="flex gap-4 items-center">
+                        <div className="w-[77px] h-[38px] rounded-[2px] overflow-hidden relative">
                           <Image
-                            src="/images/interior.jpg"
-                            alt="Interior"
+                            src="/images/mobius-house.jpg"
+                            alt="Mobius house"
                             fill
                             className="object-cover"
                           />
+                          <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% to-black/90" />
+                        </div>
+                        <div className="flex flex-col w-[179px]">
+                          <p className="text-base text-black font-normal leading-6">Mobius house</p>
+                          <p className="text-base text-black/50 font-normal leading-6">Brutalism &amp; Concrete</p>
                         </div>
                       </div>
-                      <div className="flex flex-col w-[179px]">
-                        <p className="text-base text-black font-normal leading-6">Interior </p>
-                        <p className="text-base text-black/50 font-normal leading-6">Jagged, Interior</p>
+                    </div>
+
+                    {/* Interior card */}
+                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
+                      <div className="flex gap-4 items-center">
+                        <div className="w-[77px] h-[48px] flex items-center justify-center">
+                          <div className="w-[32px] h-[48px] rounded-[3px] border border-[#cfcfcf] overflow-hidden relative">
+                            <Image
+                              src="/images/interior.jpg"
+                              alt="Interior"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col w-[179px]">
+                          <p className="text-base text-black font-normal leading-6">Interior </p>
+                          <p className="text-base text-black/50 font-normal leading-6">Jagged, Interior</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Property rows */}
-            <PropertyRow label="Exterior Color" hasColorDot />
-            <PropertyRow label="Interior Color" />
-            <PropertyRow label="Curtain style" />
+              {/* Property rows */}
+              <PropertyRow label="Exterior Color" hasColorDot />
+              <PropertyRow label="Interior Color" />
+              <PropertyRow label="Curtain style" />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1" />
+        )}
       </div>
     </div>
   );

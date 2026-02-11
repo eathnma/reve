@@ -71,10 +71,15 @@ export default function Canvas() {
           </div>
         </div>
 
-        {/* Upload button */}
-        <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
-          <span className="text-[16.28px] font-medium">Apply edits</span>
-        </button>
+        {/* Action buttons */}
+        <div className="flex gap-3 items-center">
+          <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
+            <span className="text-[16.28px] font-medium">Cancel</span>
+          </button>
+          <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
+            <span className="text-[16.28px] font-medium">Apply edits</span>
+          </button>
+        </div>
       </div>
     </div>
   );
