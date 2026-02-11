@@ -155,7 +155,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
           {images.map((image) => (
             <div
               key={image.id}
-              className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden ${
+              className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden animate-thumbnail-appear ${
                 selectedImageId === image.id ? 'ring-2 ring-[#d3e2f5] ring-offset-2' : ''
               }`}
               onClick={() => onSelectImage(image.id)}
