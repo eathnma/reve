@@ -41,14 +41,23 @@ export default function Canvas() {
           <ObjectsPanel isSelected={isSelected} onSelectObject={handleSelectObject} />
         </div>
 
-        {/* Back arrow */}
-        <button className="absolute left-4 top-4 w-5 h-5" onClick={(e) => e.stopPropagation()}>
-          <img
-            src="/images/arrow-icon.svg"
-            alt="Back"
-            className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
-          />
-        </button>
+        {/* Top bar */}
+        <div className="absolute left-0 top-0 right-[319px] flex items-center justify-between px-[30px] py-4" onClick={(e) => e.stopPropagation()}>
+          <button className="w-5 h-5 relative">
+            <img
+              src="/images/arrow-icon.svg"
+              alt="Back"
+              className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
+            />
+          </button>
+          <button className="w-5 h-5">
+            <img
+              src="/images/focus-icon.svg"
+              alt="Focus"
+              className="w-full h-full"
+            />
+          </button>
+        </div>
 
         {/* Centered content area (excluding objects panel) */}
         <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center pointer-events-none">
