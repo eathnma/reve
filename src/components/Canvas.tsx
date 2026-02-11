@@ -90,7 +90,8 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
     const parts: string[] = [];
 
     if (data.windowSizeImage) {
-      parts.push('Add large, full-length windows to the house');
+      const windowDesc = data.windowSizeDescription || 'large windows';
+      parts.push(`Change the windows to match: ${windowDesc}`);
     }
 
     if (data.exteriorImage) {
@@ -116,7 +117,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
       parts.push(`Add ${curtainColor} curtains to the windows`);
     }
 
-    return parts.join('. ') + '.';
+    return 'Preserve the original image composition and structure. Only make these specific changes: ' + parts.join('. ') + '.';
   };
 
   // Handle Apply edits button click
@@ -375,31 +376,23 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
 
         {/* Action buttons */}
         <div className="flex gap-3 items-center">
-          {isApplyingEdits ? (
-            <div className="flex items-center gap-3">
-              <video
-                src="/loading/papillon_generating_on_off.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-[45px] h-[45px]"
-              />
-              <span className="text-[16.28px] font-medium text-black/50">Applying edits...</span>
-            </div>
-          ) : (
+          {isSelected || isApplyingEdits ? (
             <>
               <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
                 <span className="text-[16.28px] font-medium">Cancel</span>
               </button>
               <button
-                className="bg-black text-white rounded-full px-[12.8px] py-[10.5px] disabled:opacity-50"
+                className="bg-black text-white rounded-full px-[12.8px] py-[10.5px] disabled:opacity-30 disabled:cursor-not-allowed"
                 onClick={handleApplyEdits}
-                disabled={!editData || (!editData.windowSizeImage && !editData.exteriorImage && !editData.interiorImage && !editData.curtainImage)}
+                disabled={isApplyingEdits || !editData || (!editData.windowSizeImage && !editData.exteriorImage && !editData.interiorImage && !editData.curtainImage)}
               >
                 <span className="text-[16.28px] font-medium">Apply edits</span>
               </button>
             </>
+          ) : (
+            <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
+              <span className="text-[16.28px] font-medium">Done</span>
+            </button>
           )}
         </div>
       </div>

@@ -1,7 +1,81 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
+
+// Reusable hook for drag and drop image handling (supports multiple images)
+function useImageDrop(onImagesDrop: (urls: string[]) => void) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          urls.push(URL.createObjectURL(file));
+        }
+      }
+      if (urls.length > 0) {
+        onImagesDrop(urls);
+      }
+    }
+  }, [onImagesDrop]);
+
+  return { isDragging, handleDragOver, handleDragLeave, handleDrop };
+}
+
+// Reusable dropped image card component
+interface DroppedImageCardProps {
+  previewUrl: string;
+  label?: string;
+  onRemove: () => void;
+}
+
+function DroppedImageCard({ previewUrl, label = 'Reference image', onRemove }: DroppedImageCardProps) {
+  return (
+    <div className="group border border-black/10 rounded-[5px] p-[10px] cursor-pointer relative">
+      <div className="flex gap-4 items-center">
+        <div className="w-[33px] h-[44px] rounded-[2px] overflow-hidden relative flex-shrink-0">
+          <img
+            src={previewUrl}
+            alt="Reference"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <p className="text-base text-black font-normal leading-6 flex-1">{label}</p>
+        <button
+          className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-black/5 rounded"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L11 11M1 11L11 1" stroke="black" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ChevronRight() {
   return (
@@ -110,26 +184,38 @@ interface WindowSizeSectionProps {
   onMouseLeave?: () => void;
   expanded?: boolean;
   onToggle?: () => void;
-  previewUrl: string | null;
-  onImageChange: (url: string | null) => void;
+  images: string[];
+  onImagesChange: (images: string[]) => void;
 }
 
-function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, previewUrl, onImageChange }: WindowSizeSectionProps) {
+function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, images, onImagesChange }: WindowSizeSectionProps) {
   const windowFileInputRef = useRef<HTMLInputElement>(null);
-  const hasImages = previewUrl !== null;
 
-  const handleAddImages = () => {
+  const handleAddImages = useCallback((urls: string[]) => {
+    onImagesChange([...images, ...urls]);
+  }, [images, onImagesChange]);
+
+  const { isDragging, handleDragOver, handleDragLeave, handleDrop } = useImageDrop(handleAddImages);
+
+  const handleClickAdd = () => {
     windowFileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Create a preview URL for the first image
-      const url = URL.createObjectURL(files[0]);
-      onImageChange(url);
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        urls.push(URL.createObjectURL(files[i]));
+      }
+      onImagesChange([...images, ...urls]);
     }
     e.target.value = '';
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    onImagesChange(newImages);
   };
 
   return (
@@ -137,6 +223,9 @@ function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onTogg
       className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <input
         type="file"
@@ -146,10 +235,10 @@ function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onTogg
         multiple
         className="hidden"
       />
-      <div className="flex flex-col gap-3 pb-2">
+      <div className="flex flex-col gap-4 pb-2 pt-2">
         {/* Header */}
         <div
-          className="flex items-center pt-2 pb-2 cursor-pointer"
+          className="flex items-center cursor-pointer"
           onClick={onToggle}
         >
           <div className="flex items-center gap-[8px]">
@@ -163,36 +252,33 @@ function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onTogg
         </div>
         {/* Content */}
         {expanded && (
-          hasImages ? (
-            // Success state - show uploaded image
-            <div className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer">
-              <div className="flex gap-4 items-center">
-                <div className="w-[33px] h-[44px] rounded-[2px] overflow-hidden relative flex-shrink-0">
-                  {previewUrl && (
-                    <img
-                      src={previewUrl}
-                      alt="Window size"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                <p className="text-base text-black font-normal leading-6">Large, full length windows</p>
-              </div>
-            </div>
-          ) : (
-            // Empty state - add more images
+          <div className="flex flex-col gap-2">
+            {/* Existing images */}
+            {images.map((url, index) => (
+              <DroppedImageCard
+                key={url}
+                previewUrl={url}
+                label="Reference image"
+                onRemove={() => handleRemoveImage(index)}
+              />
+            ))}
+            {/* Add more button */}
             <div
-              className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer"
-              onClick={handleAddImages}
+              className={`border rounded-[5px] p-[10px] cursor-pointer transition-colors ${
+                isDragging ? 'border-[#4993fc] bg-[#4993fc]/5 border-dashed' : 'border-black/10'
+              }`}
+              onClick={handleClickAdd}
             >
               <div className="flex gap-2 items-center">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px] opacity-50" />
                 </div>
-                <p className="text-base text-black/50 font-normal leading-6">Add more images</p>
+                <p className="text-base text-black/50 font-normal leading-6">
+                  {isDragging ? 'Drop images here' : 'Drop or click to add'}
+                </p>
               </div>
             </div>
-          )
+          </div>
         )}
       </div>
     </div>
@@ -207,6 +293,14 @@ const EXTERIOR_IMAGES = [
   '/images/exterior 4.png',
 ];
 
+// Representative colors for exterior images
+const EXTERIOR_COLORS = [
+  '#4A5D8A', // exterior 1 - blue
+  '#D4BC9A', // exterior 2 - warm tan wood
+  '#E8DFD0', // exterior 3 - light cream
+  '#7A9AB0', // exterior 4 - blue-gray tiles
+];
+
 interface ExteriorColorSectionProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -216,14 +310,30 @@ interface ExteriorColorSectionProps {
   brightness: number;
   onColorChange: (index: number) => void;
   onBrightnessChange: (value: number) => void;
+  customImages: string[];
+  onCustomImagesChange: (images: string[]) => void;
 }
 
-function ExteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange }: ExteriorColorSectionProps) {
+function ExteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange, customImages, onCustomImagesChange }: ExteriorColorSectionProps) {
+  const handleAddImages = useCallback((urls: string[]) => {
+    onCustomImagesChange([...customImages, ...urls]);
+  }, [customImages, onCustomImagesChange]);
+
+  const { isDragging, handleDragOver, handleDragLeave, handleDrop } = useImageDrop(handleAddImages);
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = customImages.filter((_, i) => i !== index);
+    onCustomImagesChange(newImages);
+  };
+
   return (
     <div
       className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <div className="flex flex-col gap-4 pb-2 pt-2">
         {/* Header */}
@@ -240,51 +350,68 @@ function ExteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onT
 
         {expanded && (
           <>
-            {/* Exterior images */}
-            <div className="flex gap-[10px] items-start">
-              {EXTERIOR_IMAGES.map((src, index) => (
-                <div
-                  key={index}
-                  className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
-                    selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
-                  }`}
-                  onClick={() => onColorChange(index)}
-                >
-                  <Image
-                    src={src}
-                    alt={`Exterior style ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+            {/* Custom dropped images */}
+            {customImages.length > 0 ? (
+              customImages.map((url, index) => (
+                <DroppedImageCard
+                  key={url}
+                  previewUrl={url}
+                  label="Reference image"
+                  onRemove={() => handleRemoveImage(index)}
+                />
+              ))
+            ) : (
+              <>
+                {/* Exterior images */}
+                <div className={`flex gap-[10px] items-start ${isDragging ? 'opacity-50' : ''}`}>
+                  {EXTERIOR_IMAGES.map((src, index) => (
+                    <div
+                      key={index}
+                      className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
+                        selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                      }`}
+                      onClick={() => onColorChange(index)}
+                    >
+                      <Image
+                        src={src}
+                        alt={`Exterior style ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                  {/* Drop zone indicator */}
+                  <div className={`w-[47px] h-[47px] border bg-white flex items-center justify-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-[#4993fc] border-dashed bg-[#4993fc]/5' : 'border-black/25'
+                  }`}>
+                    <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+                  </div>
                 </div>
-              ))}
-              {/* Add button */}
-              <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
-                <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
-              </div>
-            </div>
 
-            {/* Brightness slider */}
-            <div className="flex gap-4 items-center">
-              <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
-              <div className="flex-1 h-[28px] relative">
-                <div
-                  className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] bg-gradient-to-r from-white to-gray-400"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={brightness}
-                  onChange={(e) => onBrightnessChange(Number(e.target.value))}
-                  className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
-                />
-                <div
-                  className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
-                  style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
-                />
-              </div>
-            </div>
+                {/* Brightness slider */}
+                <div className="flex gap-4 items-center">
+                  <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+                  <div className="flex-1 h-[28px] relative">
+                    <div
+                      className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6]"
+                      style={{ background: `linear-gradient(to right, white, ${EXTERIOR_COLORS[selectedColor]})` }}
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={brightness}
+                      onChange={(e) => onBrightnessChange(Number(e.target.value))}
+                      className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+                    />
+                    <div
+                      className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+                      style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -300,6 +427,14 @@ const INTERIOR_IMAGES = [
   '/images/interior 4.png',
 ];
 
+// Representative colors for interior images
+const INTERIOR_COLORS = [
+  '#F5D96A', // interior 1 - yellow
+  '#D8E5F0', // interior 2 - light blue
+  '#E5A574', // interior 3 - orange/peach
+  '#A88BC8', // interior 4 - purple/lavender
+];
+
 interface InteriorColorSectionProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -309,14 +444,30 @@ interface InteriorColorSectionProps {
   brightness: number;
   onColorChange: (index: number) => void;
   onBrightnessChange: (value: number) => void;
+  customImages: string[];
+  onCustomImagesChange: (images: string[]) => void;
 }
 
-function InteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange }: InteriorColorSectionProps) {
+function InteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange, customImages, onCustomImagesChange }: InteriorColorSectionProps) {
+  const handleAddImages = useCallback((urls: string[]) => {
+    onCustomImagesChange([...customImages, ...urls]);
+  }, [customImages, onCustomImagesChange]);
+
+  const { isDragging, handleDragOver, handleDragLeave, handleDrop } = useImageDrop(handleAddImages);
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = customImages.filter((_, i) => i !== index);
+    onCustomImagesChange(newImages);
+  };
+
   return (
     <div
       className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <div className="flex flex-col gap-4 pb-2 pt-2">
         {/* Header */}
@@ -333,51 +484,68 @@ function InteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onT
 
         {expanded && (
           <>
-            {/* Interior images */}
-            <div className="flex gap-[10px] items-start">
-              {INTERIOR_IMAGES.map((src, index) => (
-                <div
-                  key={index}
-                  className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
-                    selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
-                  }`}
-                  onClick={() => onColorChange(index)}
-                >
-                  <Image
-                    src={src}
-                    alt={`Interior style ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+            {/* Custom dropped images */}
+            {customImages.length > 0 ? (
+              customImages.map((url, index) => (
+                <DroppedImageCard
+                  key={url}
+                  previewUrl={url}
+                  label="Reference image"
+                  onRemove={() => handleRemoveImage(index)}
+                />
+              ))
+            ) : (
+              <>
+                {/* Interior images */}
+                <div className={`flex gap-[10px] items-start ${isDragging ? 'opacity-50' : ''}`}>
+                  {INTERIOR_IMAGES.map((src, index) => (
+                    <div
+                      key={index}
+                      className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
+                        selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                      }`}
+                      onClick={() => onColorChange(index)}
+                    >
+                      <Image
+                        src={src}
+                        alt={`Interior style ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                  {/* Drop zone indicator */}
+                  <div className={`w-[47px] h-[47px] border bg-white flex items-center justify-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-[#4993fc] border-dashed bg-[#4993fc]/5' : 'border-black/25'
+                  }`}>
+                    <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+                  </div>
                 </div>
-              ))}
-              {/* Add button */}
-              <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
-                <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
-              </div>
-            </div>
 
-            {/* Brightness slider */}
-            <div className="flex gap-4 items-center">
-              <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
-              <div className="flex-1 h-[28px] relative">
-                <div
-                  className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] bg-gradient-to-r from-white to-gray-400"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={brightness}
-                  onChange={(e) => onBrightnessChange(Number(e.target.value))}
-                  className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
-                />
-                <div
-                  className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
-                  style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
-                />
-              </div>
-            </div>
+                {/* Brightness slider */}
+                <div className="flex gap-4 items-center">
+                  <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+                  <div className="flex-1 h-[28px] relative">
+                    <div
+                      className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6]"
+                      style={{ background: `linear-gradient(to right, white, ${INTERIOR_COLORS[selectedColor]})` }}
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={brightness}
+                      onChange={(e) => onBrightnessChange(Number(e.target.value))}
+                      className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+                    />
+                    <div
+                      className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+                      style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -400,16 +568,32 @@ interface CurtainStyleSectionProps {
   onToggle?: () => void;
   selectedCurtain: number;
   onCurtainChange: (index: number) => void;
+  customImages: string[];
+  onCustomImagesChange: (images: string[]) => void;
 }
 
-function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedCurtain, onCurtainChange }: CurtainStyleSectionProps) {
+function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedCurtain, onCurtainChange, customImages, onCustomImagesChange }: CurtainStyleSectionProps) {
   const curtainImages = CURTAIN_IMAGES;
+
+  const handleAddImages = useCallback((urls: string[]) => {
+    onCustomImagesChange([...customImages, ...urls]);
+  }, [customImages, onCustomImagesChange]);
+
+  const { isDragging, handleDragOver, handleDragLeave, handleDrop } = useImageDrop(handleAddImages);
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = customImages.filter((_, i) => i !== index);
+    onCustomImagesChange(newImages);
+  };
 
   return (
     <div
       className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <div className={`flex flex-col gap-4 pt-2 ${expanded ? 'pb-8' : 'pb-2'}`}>
         {/* Header */}
@@ -428,25 +612,43 @@ function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onTo
         </div>
 
         {expanded && (
-          /* Curtain images */
-          <div className="flex gap-[10px] items-start">
-            {curtainImages.map((src, index) => (
-              <div
-                key={index}
-                className={`w-[65px] h-[80px] rounded-[5px] cursor-pointer overflow-hidden relative ${
-                  selectedCurtain === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
-                }`}
-                onClick={() => onCurtainChange(index)}
-              >
-                <Image
-                  src={src}
-                  alt={`Curtain style ${index + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+          <>
+            {/* Custom dropped images */}
+            {customImages.map((url, index) => (
+              <DroppedImageCard
+                key={url}
+                previewUrl={url}
+                label="Reference image"
+                onRemove={() => handleRemoveImage(index)}
+              />
             ))}
-          </div>
+
+            {/* Curtain images */}
+            <div className={`flex gap-[10px] items-start ${isDragging ? 'opacity-50' : ''}`}>
+              {curtainImages.map((src, index) => (
+                <div
+                  key={index}
+                  className={`w-[65px] h-[80px] rounded-[5px] cursor-pointer overflow-hidden relative ${
+                    selectedCurtain === index && customImages.length === 0 ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                  }`}
+                  onClick={() => onCurtainChange(index)}
+                >
+                  <Image
+                    src={src}
+                    alt={`Curtain style ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+              {/* Drop zone indicator */}
+              <div className={`w-[65px] h-[80px] rounded-[5px] border bg-white flex items-center justify-center cursor-pointer transition-colors ${
+                isDragging ? 'border-[#4993fc] border-dashed bg-[#4993fc]/5' : 'border-black/25'
+              }`}>
+                <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -456,6 +658,7 @@ function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onTo
 // Edit data interface - tracks which edits the user has made
 export interface EditData {
   windowSizeImage: string | null; // Preview URL of uploaded window size reference
+  windowSizeDescription: string | null; // AI-generated description of the window image
   exteriorImage: { image: string; brightness: number } | null; // null if unchanged from default
   interiorImage: { image: string; brightness: number } | null; // null if unchanged from default
   curtainImage: string | null; // Path to selected curtain image, null if unchanged
@@ -499,28 +702,32 @@ export default function ObjectsPanel({
   const [curtainStyleExpanded, setCurtainStyleExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Edit state - track user changes
-  const [windowSizeImage, setWindowSizeImage] = useState<string | null>(null);
+  // Edit state - track user changes (arrays for multiple images)
+  const [windowSizeImages, setWindowSizeImages] = useState<string[]>([]);
   const [exteriorColorIndex, setExteriorColorIndex] = useState(0);
   const [exteriorBrightness, setExteriorBrightness] = useState(35);
   const [exteriorChanged, setExteriorChanged] = useState(false);
+  const [exteriorCustomImages, setExteriorCustomImages] = useState<string[]>([]);
   const [interiorColorIndex, setInteriorColorIndex] = useState(0);
   const [interiorBrightness, setInteriorBrightness] = useState(35);
   const [interiorChanged, setInteriorChanged] = useState(false);
+  const [interiorCustomImages, setInteriorCustomImages] = useState<string[]>([]);
   const [curtainIndex, setCurtainIndex] = useState(0);
   const [curtainChanged, setCurtainChanged] = useState(false);
+  const [curtainCustomImages, setCurtainCustomImages] = useState<string[]>([]);
 
   // Notify parent of edit data changes
   const getEditData = (): EditData => ({
-    windowSizeImage,
+    windowSizeImage: windowSizeImages.length > 0 ? windowSizeImages[0] : null,
+    windowSizeDescription: null,
     exteriorImage: exteriorChanged ? { image: EXTERIOR_IMAGES[exteriorColorIndex], brightness: exteriorBrightness } : null,
     interiorImage: interiorChanged ? { image: INTERIOR_IMAGES[interiorColorIndex], brightness: interiorBrightness } : null,
     curtainImage: curtainChanged ? CURTAIN_IMAGES[curtainIndex] : null,
   });
 
   // Handle edit state changes
-  const handleWindowSizeChange = (url: string | null) => {
-    setWindowSizeImage(url);
+  const handleWindowSizeImagesChange = (images: string[]) => {
+    setWindowSizeImages(images);
     setTimeout(() => onEditDataChange?.(getEditData()), 0);
   };
 
@@ -551,6 +758,30 @@ export default function ObjectsPanel({
   const handleCurtainChange = (index: number) => {
     setCurtainIndex(index);
     setCurtainChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleExteriorCustomImagesChange = (images: string[]) => {
+    setExteriorCustomImages(images);
+    if (images.length > 0) {
+      setExteriorChanged(true);
+    }
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleInteriorCustomImagesChange = (images: string[]) => {
+    setInteriorCustomImages(images);
+    if (images.length > 0) {
+      setInteriorChanged(true);
+    }
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleCurtainCustomImagesChange = (images: string[]) => {
+    setCurtainCustomImages(images);
+    if (images.length > 0) {
+      setCurtainChanged(true);
+    }
     setTimeout(() => onEditDataChange?.(getEditData()), 0);
   };
 
@@ -593,7 +824,7 @@ export default function ObjectsPanel({
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 pt-4 px-2">
+        <div className="flex flex-col gap-2 pt-4 px-2">
           <ObjectItem name="House" image="/images/house.png" onDoubleClick={onSelectObject} isHovered={isHoveringHouseDot} />
           <ObjectItem name="Forest" image="/images/forset.png" onDoubleClick={onSelectObject} isHovered={isHoveringForestDot} />
           <ObjectItem name="Sky" image="/images/sky.png" onDoubleClick={onSelectObject} isHovered={isHoveringSkyDot} />
@@ -648,17 +879,14 @@ export default function ObjectsPanel({
                 </div>
               </div>
               {/* Gradient fade */}
-              <div className="h-4 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+              <div className="h-3 bg-gradient-to-b from-white to-transparent pointer-events-none" />
             </div>
 
             {/* Scrollable sections */}
             <div className="flex flex-col">
-              {/* Divider */}
-              <div className="h-px bg-[#d9d9d9] w-full" />
-
               {/* Reference images section */}
               <div className="border-b border-black/20 py-2 px-4">
-                <div className="flex flex-col gap-3 pt-2 pb-2">
+                <div className="flex flex-col gap-4 pt-2 pb-2">
                   <div
                     className="flex items-center cursor-pointer"
                     onClick={() => setArchStyleExpanded(!archStyleExpanded)}
@@ -684,7 +912,7 @@ export default function ObjectsPanel({
                   {archStyleExpanded && (
                     /* Reference image cards */
                     <div
-                      className="flex flex-col gap-2"
+                      className="flex flex-col gap-4"
                       onMouseEnter={() => setIsHoveringArchStyle(true)}
                       onMouseLeave={() => setIsHoveringArchStyle(false)}
                     >
@@ -737,8 +965,8 @@ export default function ObjectsPanel({
                 onMouseLeave={() => setIsHoveringWindowSize(false)}
                 expanded={windowSizeExpanded}
                 onToggle={() => setWindowSizeExpanded(!windowSizeExpanded)}
-                previewUrl={windowSizeImage}
-                onImageChange={handleWindowSizeChange}
+                images={windowSizeImages}
+                onImagesChange={handleWindowSizeImagesChange}
               />
 
               {/* Exterior color section */}
@@ -751,6 +979,8 @@ export default function ObjectsPanel({
                 brightness={exteriorBrightness}
                 onColorChange={handleExteriorColorChange}
                 onBrightnessChange={handleExteriorBrightnessChange}
+                customImages={exteriorCustomImages}
+                onCustomImagesChange={handleExteriorCustomImagesChange}
               />
 
               {/* Interior color section */}
@@ -763,6 +993,8 @@ export default function ObjectsPanel({
                 brightness={interiorBrightness}
                 onColorChange={handleInteriorColorChange}
                 onBrightnessChange={handleInteriorBrightnessChange}
+                customImages={interiorCustomImages}
+                onCustomImagesChange={handleInteriorCustomImagesChange}
               />
 
               {/* Curtain style section */}
@@ -773,6 +1005,8 @@ export default function ObjectsPanel({
                 onToggle={() => setCurtainStyleExpanded(!curtainStyleExpanded)}
                 selectedCurtain={curtainIndex}
                 onCurtainChange={handleCurtainChange}
+                customImages={curtainCustomImages}
+                onCustomImagesChange={handleCurtainCustomImagesChange}
               />
             </div>
           </div>
