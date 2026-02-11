@@ -28,7 +28,7 @@ export default function ChatPanel() {
           {/* User message */}
           <div className="flex flex-col items-end justify-center w-full">
             <div className="bg-[#f0f0f0] rounded-[50px] px-6 py-5">
-              <p className="text-base text-black font-medium leading-[1.8]">
+              <p className="text-base text-black font-medium leading-[1.7]">
                 Render me the Mobius house in a dark lush terrain with deciduous trees, with a light blue sky
               </p>
             </div>

@@ -20,15 +20,13 @@ export default function Canvas() {
         </div>
 
         {/* Back arrow */}
-        <div className="absolute left-0 top-0 w-[855px] flex items-center justify-between pl-[14px] pr-[30px] pt-8 pb-4">
-          <button className="w-5 h-5 relative">
-            <img
-              src="/images/arrow-icon.svg"
-              alt="Back"
-              className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
-            />
-          </button>
-        </div>
+        <button className="absolute left-4 top-4 w-5 h-5">
+          <img
+            src="/images/arrow-icon.svg"
+            alt="Back"
+            className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
+          />
+        </button>
 
         {/* Centered content area (excluding objects panel) */}
         <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center">
