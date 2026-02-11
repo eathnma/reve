@@ -10,9 +10,17 @@ function SelectionHandle({ className }: { className?: string }) {
   );
 }
 
-function ObjectDot({ className }: { className?: string }) {
+interface ObjectDotProps {
+  className?: string;
+  onClick?: (e: React.MouseEvent) => void;
+}
+
+function ObjectDot({ className, onClick }: ObjectDotProps) {
   return (
-    <div className={`absolute w-[17px] h-[17px] pointer-events-none ${className}`}>
+    <div
+      className={`absolute w-[17px] h-[17px] ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'} ${className}`}
+      onClick={onClick}
+    >
       <div className="w-full h-full rounded-full bg-white border-2 border-black/20 shadow-md" />
     </div>
   );
@@ -69,10 +77,7 @@ export default function Canvas() {
 
         {/* Centered content area (excluding objects panel) */}
         <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center pointer-events-none">
-          <div
-            className="relative w-[639px] h-[361px] pointer-events-auto cursor-pointer"
-            onClick={handleImageClick}
-          >
+          <div className="relative w-[639px] h-[361px] pointer-events-auto">
             {/* House image */}
             <Image
               src="/images/canvas-house.jpg"
@@ -81,11 +86,11 @@ export default function Canvas() {
               className="object-cover"
             />
 
-            {/* Object dots */}
-            <ObjectDot className="left-[274px] top-[44px]" />
-            <ObjectDot className="left-[555px] top-[105px]" />
-            <ObjectDot className="left-[317px] top-[232px]" />
-            <ObjectDot className="left-[316px] top-[327px]" />
+            {/* Object dots - positioned as percentages to follow image on resize */}
+            <ObjectDot className="left-[42.88%] top-[12.19%]" />
+            <ObjectDot className="left-[86.85%] top-[29.09%]" />
+            <ObjectDot className="left-[49.61%] top-[64.27%]" onClick={handleImageClick} />
+            <ObjectDot className="left-[49.45%] top-[90.58%]" />
 
             {/* Selection box - only show when selected */}
             {isSelected && (

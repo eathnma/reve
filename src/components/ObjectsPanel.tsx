@@ -42,7 +42,7 @@ interface ObjectItemProps {
 function ObjectItem({ name, image }: ObjectItemProps) {
   return (
     <div className="flex gap-2 items-center w-full">
-      <div className="w-8 h-8 rounded overflow-hidden relative flex-shrink-0">
+      <div className="w-[32px] h-[32px] overflow-hidden relative flex-shrink-0">
         <Image
           src={image}
           alt={name}
@@ -87,11 +87,11 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
 
         <div className="flex flex-col gap-5 pt-4 px-4">
           <div className="cursor-pointer" onClick={onSelectObject}>
-            <ObjectItem name="House" image="/images/canvas-house.jpg" />
+            <ObjectItem name="House" image="/images/thumb-house.png" />
           </div>
-          <ObjectItem name="Forest" image="/images/canvas-house.jpg" />
-          <ObjectItem name="Sky" image="/images/canvas-house.jpg" />
-          <ObjectItem name="Ground" image="/images/canvas-house.jpg" />
+          <ObjectItem name="Forest" image="/images/thumb-forest.png" />
+          <ObjectItem name="Sky" image="/images/thumb-sky.png" />
+          <ObjectItem name="Ground" image="/images/thumb-ground.png" />
         </div>
       </div>
     );
