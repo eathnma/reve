@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import ObjectsPanel from './ObjectsPanel';
+import { GeneratedImage } from '@/app/page';
 
 function SelectionHandle({ className }: { className?: string }) {
   return (
@@ -27,8 +28,17 @@ function ObjectDot({ className, onClick, dimmed }: ObjectDotProps) {
   );
 }
 
-export default function Canvas() {
-  const [isSelected, setIsSelected] = useState(true);
+interface CanvasProps {
+  images: GeneratedImage[];
+  selectedImageId: string | null;
+  onSelectImage: (id: string) => void;
+  isGenerating: boolean;
+}
+
+export default function Canvas({ images, selectedImageId, onSelectImage, isGenerating }: CanvasProps) {
+  const [isSelected, setIsSelected] = useState(false);
+
+  const selectedImage = images.find(img => img.id === selectedImageId);
 
   const handleCanvasClick = () => {
     setIsSelected(false);
@@ -60,32 +70,40 @@ export default function Canvas() {
 
         {/* Top bar */}
         <div className="absolute left-0 top-0 right-[319px] flex items-center justify-between px-[30px] py-4" onClick={(e) => e.stopPropagation()}>
-          <button className="w-5 h-5 relative">
+          <button className="w-5 h-5 flex items-center justify-center">
             <img
               src="/images/arrow-icon.svg"
               alt="Back"
-              className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
+              className="w-[15px] h-[11px]"
             />
           </button>
-          <button className="w-5 h-5">
+          <button className="w-5 h-5 flex items-center justify-center">
             <img
               src="/images/focus-icon.svg"
               alt="Focus"
-              className="w-full h-full"
+              className="w-5 h-5"
             />
           </button>
         </div>
 
         {/* Centered content area (excluding objects panel) */}
-        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center pointer-events-none">
-          <div className="relative w-[639px] h-[361px] pointer-events-auto">
-            {/* House image */}
-            <Image
-              src="/images/canvas-house.jpg"
-              alt="Rendered house"
-              fill
-              className="object-cover"
-            />
+        <div className="absolute top-8 left-8 bottom-8 right-[351px] flex items-center justify-center pointer-events-none">
+          <div className="relative pointer-events-auto w-full" style={{ aspectRatio: '639/361', maxHeight: '100%' }}>
+            {/* Show selected generated image or default house */}
+            {selectedImage ? (
+              <img
+                src={selectedImage.url}
+                alt="Generated image"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src="/images/canvas-house.jpg"
+                alt="Rendered house"
+                fill
+                className="object-cover"
+              />
+            )}
 
             {/* Object dots - positioned as percentages to follow image on resize */}
             <ObjectDot className="left-[42.88%] top-[12.19%]" dimmed={isSelected} />
@@ -95,7 +113,7 @@ export default function Canvas() {
 
             {/* Selection box - only show when selected */}
             {isSelected && (
-              <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[154px] pointer-events-none animate-selection-appear">
+              <div className="absolute left-[4.23%] bottom-[7.48%] w-[92.96%] h-[42.66%] pointer-events-none animate-selection-appear">
                 <div className="absolute inset-0 border border-white" />
                 <SelectionHandle className="-left-[5px] -top-[5px]" />
                 <SelectionHandle className="-left-[5px] -bottom-[5px]" />
@@ -116,16 +134,44 @@ export default function Canvas() {
 
       {/* Bottom bar */}
       <div className="bg-white h-[112px] flex items-center justify-between pl-2 pr-6 border-t border-[#d9d9d9]">
-        {/* Thumbnail */}
-        <div className="w-[81px] h-[81px] relative">
-          <div className="absolute inset-[10px_10px_10px_10px] rounded-[13px] border-8 border-[#d3e2f5] overflow-hidden">
+        {/* Thumbnails */}
+        <div className="flex gap-2 items-center">
+          {/* Default thumbnail */}
+          <div
+            className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden ${
+              !selectedImageId ? 'ring-2 ring-[#d3e2f5] ring-offset-2' : ''
+            }`}
+            onClick={() => onSelectImage('')}
+          >
             <Image
               src="/images/thumbnail.jpg"
-              alt="Thumbnail"
+              alt="Original"
               fill
-              className="object-cover rounded-[13px]"
+              className="object-cover"
             />
           </div>
+
+          {/* Generated image thumbnails */}
+          {images.map((image) => (
+            <div
+              key={image.id}
+              className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden ${
+                selectedImageId === image.id ? 'ring-2 ring-[#d3e2f5] ring-offset-2' : ''
+              }`}
+              onClick={() => onSelectImage(image.id)}
+            >
+              <img
+                src={image.url}
+                alt={image.prompt}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+          ))}
+
+          {/* Loading thumbnail while generating */}
+          {isGenerating && (
+            <div className="w-[61px] h-[61px] relative rounded-[8px] overflow-hidden loading-static" />
+          )}
         </div>
 
         {/* Action buttons */}
