@@ -77,8 +77,8 @@ export default function Canvas() {
         </div>
 
         {/* Centered content area (excluding objects panel) */}
-        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center p-8 pointer-events-none">
-          <div className="relative w-full h-full max-w-[calc(100%-64px)] max-h-[calc(100%-64px)] aspect-[639/361] pointer-events-auto">
+        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center pointer-events-none">
+          <div className="relative w-[639px] h-[361px] pointer-events-auto">
             {/* House image */}
             <Image
               src="/images/canvas-house.jpg"
@@ -95,7 +95,7 @@ export default function Canvas() {
 
             {/* Selection box - only show when selected */}
             {isSelected && (
-              <div className="absolute left-[4.23%] bottom-[7.48%] w-[92.96%] h-[42.66%] pointer-events-none animate-selection-appear">
+              <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[154px] pointer-events-none animate-selection-appear">
                 <div className="absolute inset-0 border border-white" />
                 <SelectionHandle className="-left-[5px] -top-[5px]" />
                 <SelectionHandle className="-left-[5px] -bottom-[5px]" />
