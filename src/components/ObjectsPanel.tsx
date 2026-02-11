@@ -765,6 +765,8 @@ export default function ObjectsPanel({
     setExteriorCustomImages(images);
     if (images.length > 0) {
       setExteriorChanged(true);
+    } else {
+      setExteriorChanged(false);
     }
     setTimeout(() => onEditDataChange?.(getEditData()), 0);
   };
@@ -773,6 +775,8 @@ export default function ObjectsPanel({
     setInteriorCustomImages(images);
     if (images.length > 0) {
       setInteriorChanged(true);
+    } else {
+      setInteriorChanged(false);
     }
     setTimeout(() => onEditDataChange?.(getEditData()), 0);
   };
@@ -781,6 +785,8 @@ export default function ObjectsPanel({
     setCurtainCustomImages(images);
     if (images.length > 0) {
       setCurtainChanged(true);
+    } else {
+      setCurtainChanged(false);
     }
     setTimeout(() => onEditDataChange?.(getEditData()), 0);
   };
@@ -885,8 +891,8 @@ export default function ObjectsPanel({
             {/* Scrollable sections */}
             <div className="flex flex-col">
               {/* Reference images section */}
-              <div className="border-b border-black/20 py-2 px-4">
-                <div className="flex flex-col gap-4 pt-2 pb-2">
+              <div className="border-b border-black/20 pt-2 pb-2 px-4">
+                <div className="flex flex-col gap-4 pb-2">
                   <div
                     className="flex items-center cursor-pointer"
                     onClick={() => setArchStyleExpanded(!archStyleExpanded)}
