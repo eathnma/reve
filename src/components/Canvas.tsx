@@ -61,7 +61,7 @@ export default function Canvas() {
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-white h-[112px] flex items-center justify-between px-6 border-t border-[#d9d9d9]">
+      <div className="bg-white h-[112px] flex items-center justify-between pl-2 pr-6 border-t border-[#d9d9d9]">
         {/* Thumbnail */}
         <div className="w-[81px] h-[81px] relative">
           <div className="absolute inset-[10px_10px_10px_10px] rounded-[13px] border-8 border-[#d3e2f5] overflow-hidden">
