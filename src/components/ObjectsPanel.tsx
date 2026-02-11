@@ -18,8 +18,8 @@ interface PropertyRowProps {
 
 function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
   return (
-    <div className="border-b border-black/20 flex flex-col items-start p-4 w-full">
-      <div className="flex items-center justify-between w-[287px]">
+    <div className="border-b border-black/20 flex items-center h-[56px] px-4 w-full">
+      <div className="flex items-center justify-between w-full">
         <div className="flex gap-2 items-center">
           <p className="text-base text-black font-normal">{label}</p>
           {hasColorDot && (
