@@ -20,7 +20,7 @@ export default function Canvas() {
         </div>
 
         {/* Back arrow */}
-        <div className="absolute left-0 top-0 w-[855px] flex items-center justify-between px-[30px] py-4">
+        <div className="absolute left-0 top-0 w-[855px] flex items-center justify-between pl-[14px] pr-[30px] pt-8 pb-4">
           <button className="w-5 h-5 relative">
             <img
               src="/images/arrow-icon.svg"
@@ -30,30 +30,33 @@ export default function Canvas() {
           </button>
         </div>
 
-        {/* House image with selection */}
-        <div className="absolute left-[119px] top-[217px] w-[639px] h-[361px]">
-          <Image
-            src="/images/canvas-house.jpg"
-            alt="Rendered house"
-            fill
-            className="object-cover"
-          />
-        </div>
+        {/* Centered content area (excluding objects panel) */}
+        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center">
+          <div className="relative w-[639px] h-[361px]">
+            {/* House image */}
+            <Image
+              src="/images/canvas-house.jpg"
+              alt="Rendered house"
+              fill
+              className="object-cover"
+            />
 
-        {/* Selection box */}
-        <div className="absolute left-[146px] top-[400px] w-[594px] h-[130px] pointer-events-none">
-          <div className="absolute inset-0 border border-white" />
-          <SelectionHandle className="-left-[5px] -top-[5px]" />
-          <SelectionHandle className="-left-[5px] -bottom-[5px]" />
-          <SelectionHandle className="-right-[5px] -top-[5px]" />
-          <SelectionHandle className="-right-[5px] -bottom-[5px]" />
-        </div>
+            {/* Selection box */}
+            <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[130px] pointer-events-none">
+              <div className="absolute inset-0 border border-white" />
+              <SelectionHandle className="-left-[5px] -top-[5px]" />
+              <SelectionHandle className="-left-[5px] -bottom-[5px]" />
+              <SelectionHandle className="-right-[5px] -top-[5px]" />
+              <SelectionHandle className="-right-[5px] -bottom-[5px]" />
+            </div>
 
-        {/* Label tooltip */}
-        <div className="absolute left-[382px] top-[370px] bg-[#484848] rounded-[2px] px-[6px] py-1">
-          <p className="text-[11px] text-white font-normal">
-            House, Mobius House
-          </p>
+            {/* Label tooltip */}
+            <div className="absolute left-1/2 -translate-x-1/2 -top-[30px] bg-[#484848] rounded-[2px] px-[6px] py-1">
+              <p className="text-[11px] text-white font-normal whitespace-nowrap">
+                House, Mobius House
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
