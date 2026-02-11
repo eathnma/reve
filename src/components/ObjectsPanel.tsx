@@ -36,17 +36,11 @@ function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
 
 interface ObjectItemProps {
   name: string;
-  hasArrow?: boolean;
 }
 
-function ObjectItem({ name, hasArrow }: ObjectItemProps) {
+function ObjectItem({ name }: ObjectItemProps) {
   return (
     <div className="flex gap-2 items-center w-full">
-      {hasArrow && (
-        <svg width="13" height="10" viewBox="0 0 13 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-          <path d="M6.5 0L12.5 10H0.5L6.5 0Z" fill="black"/>
-        </svg>
-      )}
       <div className="w-8 h-8 rounded overflow-hidden relative flex-shrink-0">
         <Image
           src="/images/object-thumb.jpg"
@@ -72,17 +66,31 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
   if (!isSelected) {
     return (
       <div className="w-[319px] h-full border-b border-[#d9d9d9] flex flex-col bg-white">
-        <div className="flex flex-col gap-5 pt-[30px] px-[18px] pb-[23px]">
-          <div className="cursor-pointer" onClick={onSelectObject}>
-            <ObjectItem name="House, Mobius House" />
+        {/* Header */}
+        <div className="bg-white border-b border-[#d9d9d9] h-[50px] flex items-center px-4">
+          <div className="flex gap-4 items-center w-[190px]">
+            <button
+              onClick={() => setActiveTab('objects')}
+              className={`text-base font-medium cursor-pointer ${activeTab === 'objects' ? 'text-black' : 'text-black/50'}`}
+            >
+              Objects
+            </button>
+            <button
+              onClick={() => setActiveTab('edit')}
+              className={`text-base font-medium cursor-pointer ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
+            >
+              Edit
+            </button>
           </div>
-          <ObjectItem name="ASDF" />
-          <ObjectItem name="Interior lighting" hasArrow />
-          <ObjectItem name="House, Mobius House" />
-          <ObjectItem name="House, Mobius House" />
-          <ObjectItem name="House, Mobius House" />
-          <ObjectItem name="House, Mobius House" />
-          <ObjectItem name="House, Mobius House" />
+        </div>
+
+        <div className="flex flex-col gap-5 pt-4 px-4">
+          <div className="cursor-pointer" onClick={onSelectObject}>
+            <ObjectItem name="House" />
+          </div>
+          <ObjectItem name="Forest" />
+          <ObjectItem name="Sky" />
+          <ObjectItem name="Ground" />
         </div>
       </div>
     );
