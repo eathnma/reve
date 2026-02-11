@@ -15,18 +15,17 @@ export default function Canvas() {
       {/* Main canvas area */}
       <div className="flex-1 bg-[#f0f0f0] relative overflow-hidden">
         {/* Objects panel positioned on the right */}
-        <div className="absolute right-0 top-0 border-l border-[#d9d9d9]">
+        <div className="absolute right-0 top-0 bottom-0 border-l border-[#d9d9d9]">
           <ObjectsPanel />
         </div>
 
         {/* Back arrow */}
         <div className="absolute left-0 top-0 w-[855px] flex items-center justify-between px-[30px] py-4">
-          <button className="w-5 h-5 flex items-center justify-center">
-            <Image
+          <button className="w-5 h-5 relative">
+            <img
               src="/images/arrow-icon.svg"
               alt="Back"
-              width={20}
-              height={20}
+              className="absolute w-[15px] h-[11px] left-[2.5px] top-[4.5px]"
             />
           </button>
         </div>

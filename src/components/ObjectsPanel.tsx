@@ -35,7 +35,7 @@ function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
 
 export default function ObjectsPanel() {
   return (
-    <div className="w-[319px] h-[749px] border-b border-[#d9d9d9] flex flex-col">
+    <div className="w-[319px] h-full border-b border-[#d9d9d9] flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-[#d9d9d9] h-[50px] flex items-center px-4">
         <div className="flex gap-4 items-center w-[190px]">
