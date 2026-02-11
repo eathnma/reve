@@ -13,12 +13,13 @@ function SelectionHandle({ className }: { className?: string }) {
 interface ObjectDotProps {
   className?: string;
   onClick?: (e: React.MouseEvent) => void;
+  dimmed?: boolean;
 }
 
-function ObjectDot({ className, onClick }: ObjectDotProps) {
+function ObjectDot({ className, onClick, dimmed }: ObjectDotProps) {
   return (
     <div
-      className={`absolute w-[17px] h-[17px] ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'} ${className}`}
+      className={`absolute w-[17px] h-[17px] ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'} ${dimmed ? 'opacity-40' : ''} ${className}`}
       onClick={onClick}
     >
       <div className="w-full h-full rounded-full bg-white border-2 border-black/20 shadow-md" />
@@ -87,10 +88,10 @@ export default function Canvas() {
             />
 
             {/* Object dots - positioned as percentages to follow image on resize */}
-            <ObjectDot className="left-[42.88%] top-[12.19%]" />
-            <ObjectDot className="left-[86.85%] top-[29.09%]" />
+            <ObjectDot className="left-[42.88%] top-[12.19%]" dimmed={isSelected} />
+            <ObjectDot className="left-[86.85%] top-[29.09%]" dimmed={isSelected} />
             <ObjectDot className="left-[49.61%] top-[64.27%]" onClick={handleImageClick} />
-            <ObjectDot className="left-[49.45%] top-[90.58%]" />
+            <ObjectDot className="left-[49.45%] top-[90.58%]" dimmed={isSelected} />
 
             {/* Selection box - only show when selected */}
             {isSelected && (
