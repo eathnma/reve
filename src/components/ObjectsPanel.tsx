@@ -34,9 +34,61 @@ function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
   );
 }
 
-export default function ObjectsPanel() {
+interface ObjectItemProps {
+  name: string;
+  hasArrow?: boolean;
+}
+
+function ObjectItem({ name, hasArrow }: ObjectItemProps) {
+  return (
+    <div className="flex gap-2 items-center w-full">
+      {hasArrow && (
+        <svg width="13" height="10" viewBox="0 0 13 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+          <path d="M6.5 0L12.5 10H0.5L6.5 0Z" fill="black"/>
+        </svg>
+      )}
+      <div className="w-8 h-8 rounded overflow-hidden relative flex-shrink-0">
+        <Image
+          src="/images/object-thumb.jpg"
+          alt={name}
+          fill
+          className="object-cover"
+        />
+      </div>
+      <p className="text-base text-black font-normal">{name}</p>
+    </div>
+  );
+}
+
+interface ObjectsPanelProps {
+  isSelected?: boolean;
+  onSelectObject?: () => void;
+}
+
+export default function ObjectsPanel({ isSelected = true, onSelectObject }: ObjectsPanelProps) {
   const [activeTab, setActiveTab] = useState<'objects' | 'edit'>('objects');
 
+  // Deselected state - simple list view
+  if (!isSelected) {
+    return (
+      <div className="w-[319px] h-full border-b border-[#d9d9d9] flex flex-col bg-white">
+        <div className="flex flex-col gap-5 pt-[30px] px-[18px] pb-[23px]">
+          <div className="cursor-pointer" onClick={onSelectObject}>
+            <ObjectItem name="House, Mobius House" />
+          </div>
+          <ObjectItem name="ASDF" />
+          <ObjectItem name="Interior lighting" hasArrow />
+          <ObjectItem name="House, Mobius House" />
+          <ObjectItem name="House, Mobius House" />
+          <ObjectItem name="House, Mobius House" />
+          <ObjectItem name="House, Mobius House" />
+          <ObjectItem name="House, Mobius House" />
+        </div>
+      </div>
+    );
+  }
+
+  // Selected state - detailed view
   return (
     <div className="w-[319px] h-full border-b border-[#d9d9d9] flex flex-col">
       {/* Header */}

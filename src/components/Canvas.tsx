@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import ObjectsPanel from './ObjectsPanel';
 
@@ -10,17 +11,38 @@ function SelectionHandle({ className }: { className?: string }) {
 }
 
 export default function Canvas() {
+  const [isSelected, setIsSelected] = useState(true);
+
+  const handleCanvasClick = () => {
+    setIsSelected(false);
+  };
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSelected(true);
+  };
+
+  const handleSelectObject = () => {
+    setIsSelected(true);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-screen">
       {/* Main canvas area */}
-      <div className="flex-1 bg-[#f0f0f0] relative overflow-hidden">
+      <div
+        className="flex-1 bg-[#f0f0f0] relative overflow-hidden"
+        onClick={handleCanvasClick}
+      >
         {/* Objects panel positioned on the right */}
-        <div className="absolute right-0 top-0 bottom-0 border-l border-[#d9d9d9]">
-          <ObjectsPanel />
+        <div
+          className="absolute right-0 top-0 bottom-0 border-l border-[#d9d9d9]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ObjectsPanel isSelected={isSelected} onSelectObject={handleSelectObject} />
         </div>
 
         {/* Back arrow */}
-        <button className="absolute left-4 top-4 w-5 h-5">
+        <button className="absolute left-4 top-4 w-5 h-5" onClick={(e) => e.stopPropagation()}>
           <img
             src="/images/arrow-icon.svg"
             alt="Back"
@@ -29,8 +51,11 @@ export default function Canvas() {
         </button>
 
         {/* Centered content area (excluding objects panel) */}
-        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center">
-          <div className="relative w-[639px] h-[361px]">
+        <div className="absolute left-0 top-0 bottom-0 right-[319px] flex items-center justify-center pointer-events-none">
+          <div
+            className="relative w-[639px] h-[361px] pointer-events-auto cursor-pointer"
+            onClick={handleImageClick}
+          >
             {/* House image */}
             <Image
               src="/images/canvas-house.jpg"
@@ -39,21 +64,23 @@ export default function Canvas() {
               className="object-cover"
             />
 
-            {/* Selection box */}
-            <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[130px] pointer-events-none">
-              <div className="absolute inset-0 border border-white" />
-              <SelectionHandle className="-left-[5px] -top-[5px]" />
-              <SelectionHandle className="-left-[5px] -bottom-[5px]" />
-              <SelectionHandle className="-right-[5px] -top-[5px]" />
-              <SelectionHandle className="-right-[5px] -bottom-[5px]" />
+            {/* Selection box - only show when selected */}
+            {isSelected && (
+              <div className="absolute left-[27px] bottom-[27px] w-[594px] h-[154px] pointer-events-none">
+                <div className="absolute inset-0 border border-white" />
+                <SelectionHandle className="-left-[5px] -top-[5px]" />
+                <SelectionHandle className="-left-[5px] -bottom-[5px]" />
+                <SelectionHandle className="-right-[5px] -top-[5px]" />
+                <SelectionHandle className="-right-[5px] -bottom-[5px]" />
 
-              {/* Label tooltip - 8px above selection box */}
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
-                <p className="text-[16px] text-white font-normal whitespace-nowrap">
-                  House, Mobius House
-                </p>
+                {/* Label tooltip - 8px above selection box */}
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
+                  <p className="text-[16px] text-white font-normal whitespace-nowrap">
+                    House, Mobius House
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
