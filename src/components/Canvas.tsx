@@ -104,7 +104,7 @@ export default function Canvas() {
 
                 {/* Label tooltip - 8px above selection box */}
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
-                  <p className="text-[16px] text-white font-normal whitespace-nowrap">
+                  <p className="text-[14px] text-white font-normal whitespace-nowrap">
                     House, Mobius House
                   </p>
                 </div>
