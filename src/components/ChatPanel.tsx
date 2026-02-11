@@ -13,12 +13,19 @@ interface Message {
   timestamp: Date;
 }
 
+interface SelectedObject {
+  name: string;
+  image: string;
+}
+
 interface ChatPanelProps {
   onImageGenerated?: (imageUrl: string, prompt: string) => void;
   onGeneratingChange?: (isGenerating: boolean) => void;
+  selectedObject?: SelectedObject | null;
+  onClearSelectedObject?: () => void;
 }
 
-export default function ChatPanel({ onImageGenerated, onGeneratingChange }: ChatPanelProps) {
+export default function ChatPanel({ onImageGenerated, onGeneratingChange, selectedObject, onClearSelectedObject }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
@@ -140,7 +147,7 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
           {/* Date */}
           <div className="flex items-center justify-center w-full">
             <p className="text-base text-black/50 font-normal">
-              February 4, 2026
+              {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
 
@@ -215,7 +222,7 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
           className="bg-[#f0f0f0] border border-[#d9d9d9] rounded-[32px] px-[21px] py-6 w-full flex items-end justify-between cursor-text transition-all duration-150 ease-out"
           onClick={() => textareaRef.current?.focus()}
         >
-          <div className="flex flex-col gap-6 items-start flex-1">
+          <div className="flex flex-col gap-4 items-start flex-1">
             <textarea
               ref={textareaRef}
               value={inputValue}
@@ -232,6 +239,20 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
               rows={1}
               className="text-base text-black font-normal bg-transparent outline-none w-full placeholder:text-black/60 resize-none overflow-hidden transition-[height] duration-150 ease-out"
             />
+            {/* Selected object card */}
+            {selectedObject && (
+              <div className="flex items-center gap-3 border border-black/10 rounded-[8px] p-2 bg-white">
+                <div className="w-[48px] h-[48px] rounded-[4px] overflow-hidden relative flex-shrink-0">
+                  <Image
+                    src={selectedObject.image}
+                    alt={selectedObject.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-base text-black font-normal">{selectedObject.name}</p>
+              </div>
+            )}
             <div className="flex gap-2 items-start">
               <button className="w-8 h-8 cursor-pointer">
                 <Image

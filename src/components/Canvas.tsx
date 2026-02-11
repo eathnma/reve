@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import ObjectsPanel from './ObjectsPanel';
+import ObjectsPanel, { EditData } from './ObjectsPanel';
 import { GeneratedImage } from '@/app/page';
+import { useReveApi } from '@/hooks/useReveApi';
+import { base64ToDataUrl } from '@/lib/reve-api';
 
 function SelectionHandle({ className }: { className?: string }) {
   return (
@@ -32,6 +34,11 @@ function ObjectDot({ className, onClick, onMouseEnter, onMouseLeave, dimmed }: O
   );
 }
 
+interface SelectedObject {
+  name: string;
+  image: string;
+}
+
 interface CanvasProps {
   images: GeneratedImage[];
   selectedImageId: string | null;
@@ -39,17 +46,136 @@ interface CanvasProps {
   isGenerating: boolean;
   onImageEdited?: (imageUrl: string, prompt: string) => void;
   onEditGeneratingChange?: (isGenerating: boolean) => void;
+  onObjectSelected?: (object: SelectedObject | null) => void;
 }
 
-export default function Canvas({ images, selectedImageId, onSelectImage, isGenerating, onImageEdited, onEditGeneratingChange }: CanvasProps) {
+export default function Canvas({ images, selectedImageId, onSelectImage, isGenerating, onImageEdited, onEditGeneratingChange, onObjectSelected }: CanvasProps) {
   const [isSelected, setIsSelected] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isHoveringHouseDot, setIsHoveringHouseDot] = useState(false);
   const [isHoveringSkyDot, setIsHoveringSkyDot] = useState(false);
   const [isHoveringForestDot, setIsHoveringForestDot] = useState(false);
   const [isHoveringGroundDot, setIsHoveringGroundDot] = useState(false);
+  const [editData, setEditData] = useState<EditData | null>(null);
+  const [isApplyingEdits, setIsApplyingEdits] = useState(false);
+
+  const { editImage } = useReveApi();
 
   const selectedImage = images.find(img => img.id === selectedImageId);
+
+  // Helper to get exterior style description from image path
+  const getExteriorStyleName = (imagePath: string): string => {
+    const styleMap: Record<string, string> = {
+      '/images/exterior 1.png': 'light gray concrete with warm wood accents',
+      '/images/exterior 2.png': 'warm beige stone with natural textures',
+      '/images/exterior 3.png': 'light brown wood siding',
+      '/images/exterior 4.png': 'blue-gray modern panels',
+    };
+    return styleMap[imagePath] || 'modern exterior';
+  };
+
+  // Helper to get interior style description from image path
+  const getInteriorStyleName = (imagePath: string): string => {
+    const styleMap: Record<string, string> = {
+      '/images/interior 1.png': 'warm yellow ambient lighting',
+      '/images/interior 2.png': 'cool blue modern lighting',
+      '/images/interior 3.png': 'warm orange cozy lighting',
+      '/images/interior 4.png': 'soft purple accent lighting',
+    };
+    return styleMap[imagePath] || 'well-lit interior';
+  };
+
+  // Build edit prompt from edit data
+  const buildEditPrompt = (data: EditData): string => {
+    const parts: string[] = [];
+
+    if (data.windowSizeImage) {
+      parts.push('Add large, full-length windows to the house');
+    }
+
+    if (data.exteriorImage) {
+      const styleName = getExteriorStyleName(data.exteriorImage.image);
+      const brightnessDesc = data.exteriorImage.brightness > 50 ? 'bright' : 'darker';
+      parts.push(`Change the exterior to ${styleName} with ${brightnessDesc} tone`);
+    }
+
+    if (data.interiorImage) {
+      const styleName = getInteriorStyleName(data.interiorImage.image);
+      const brightnessDesc = data.interiorImage.brightness > 50 ? 'brightly lit' : 'warmly lit';
+      parts.push(`Make the interior have ${styleName}, ${brightnessDesc}`);
+    }
+
+    if (data.curtainImage) {
+      const curtainMap: Record<string, string> = {
+        '/images/green curtain.png': 'green',
+        '/images/beige curtain.png': 'beige',
+        '/images/ash curtain.png': 'ash gray',
+        '/images/red curtain.png': 'red',
+      };
+      const curtainColor = curtainMap[data.curtainImage] || 'elegant';
+      parts.push(`Add ${curtainColor} curtains to the windows`);
+    }
+
+    return parts.join('. ') + '.';
+  };
+
+  // Handle Apply edits button click
+  const handleApplyEdits = async () => {
+    if (!editData) return;
+
+    // Check if any edits were actually made
+    const hasEdits = editData.windowSizeImage || editData.exteriorImage || editData.interiorImage || editData.curtainImage;
+    if (!hasEdits) return;
+
+    // Close selection state
+    handleClose();
+
+    setIsApplyingEdits(true);
+    onEditGeneratingChange?.(true);
+
+    try {
+      // Get the current canvas image as base64
+      const sourceImageUrl = selectedImage?.url || '/images/canvas-house.jpg';
+      let imageBase64: string;
+
+      if (sourceImageUrl.startsWith('data:')) {
+        // Already a data URL
+        imageBase64 = sourceImageUrl.split(',')[1];
+      } else {
+        // Fetch and convert to base64
+        const response = await fetch(sourceImageUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        imageBase64 = await new Promise((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      // Build the edit prompt
+      const prompt = buildEditPrompt(editData);
+
+      // Call the API
+      const result = await editImage({
+        edit_instruction: prompt,
+        reference_image: imageBase64,
+      });
+
+      if (result) {
+        const newImageUrl = base64ToDataUrl(result.image);
+        onImageEdited?.(newImageUrl, prompt);
+      }
+    } catch (err) {
+      console.error('Error applying edits:', err);
+    } finally {
+      setIsApplyingEdits(false);
+      onEditGeneratingChange?.(false);
+    }
+  };
 
   // Listen for Escape key to exit selection state
   useEffect(() => {
@@ -66,6 +192,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
   const handleClose = () => {
     if (!isSelected || isClosing) return;
     setIsClosing(true);
+    onObjectSelected?.(null);
     setTimeout(() => {
       setIsSelected(false);
       setIsClosing(false);
@@ -79,6 +206,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsSelected(true);
+    onObjectSelected?.({ name: 'House', image: '/images/house.png' });
   };
 
   const handleSelectObject = () => {
@@ -106,6 +234,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
             isHoveringGroundDot={isHoveringGroundDot}
             onImageEdited={onImageEdited}
             onEditGeneratingChange={onEditGeneratingChange}
+            onEditDataChange={setEditData}
           />
         </div>
 
@@ -239,19 +368,39 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
           ))}
 
           {/* Loading thumbnail while generating */}
-          {isGenerating && (
+          {(isGenerating || isApplyingEdits) && (
             <div className="w-[61px] h-[61px] relative rounded-[8px] overflow-hidden loading-static" />
           )}
         </div>
 
         {/* Action buttons */}
         <div className="flex gap-3 items-center">
-          <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
-            <span className="text-[16.28px] font-medium">Cancel</span>
-          </button>
-          <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
-            <span className="text-[16.28px] font-medium">Apply edits</span>
-          </button>
+          {isApplyingEdits ? (
+            <div className="flex items-center gap-3">
+              <video
+                src="/loading/papillon_generating_on_off.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-[45px] h-[45px]"
+              />
+              <span className="text-[16.28px] font-medium text-black/50">Applying edits...</span>
+            </div>
+          ) : (
+            <>
+              <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
+                <span className="text-[16.28px] font-medium">Cancel</span>
+              </button>
+              <button
+                className="bg-black text-white rounded-full px-[12.8px] py-[10.5px] disabled:opacity-50"
+                onClick={handleApplyEdits}
+                disabled={!editData || (!editData.windowSizeImage && !editData.exteriorImage && !editData.interiorImage && !editData.curtainImage)}
+              >
+                <span className="text-[16.28px] font-medium">Apply edits</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

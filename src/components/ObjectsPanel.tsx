@@ -105,223 +105,360 @@ function ObjectItem({ name, image, onDoubleClick, isHovered }: ObjectItemProps) 
 }
 
 // Window size section component
-function WindowSizeSection() {
+interface WindowSizeSectionProps {
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  expanded?: boolean;
+  onToggle?: () => void;
+  previewUrl: string | null;
+  onImageChange: (url: string | null) => void;
+}
+
+function WindowSizeSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, previewUrl, onImageChange }: WindowSizeSectionProps) {
+  const windowFileInputRef = useRef<HTMLInputElement>(null);
+  const hasImages = previewUrl !== null;
+
+  const handleAddImages = () => {
+    windowFileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // Create a preview URL for the first image
+      const url = URL.createObjectURL(files[0]);
+      onImageChange(url);
+    }
+    e.target.value = '';
+  };
+
   return (
-    <div className="border-b border-black/20 pb-4 pt-1 px-4">
-      <div className="flex flex-col gap-3">
+    <div
+      className="border-b border-black/20 py-2 px-4"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <input
+        type="file"
+        ref={windowFileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        multiple
+        className="hidden"
+      />
+      <div className="flex flex-col gap-3 pb-2">
         {/* Header */}
-        <div className="flex items-center justify-between pt-4 pb-2">
-          <div className="flex items-center gap-[4px]">
-            <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+        <div
+          className="flex items-center pt-2 pb-2 cursor-pointer"
+          onClick={onToggle}
+        >
+          <div className="flex items-center gap-[8px]">
+            <img
+              src="/triangle.svg"
+              alt=""
+              className={`w-[7px] h-[8px] transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+            />
             <p className="text-base text-black font-normal">Window size</p>
           </div>
-          <button className="w-5 h-5 flex items-center justify-center cursor-pointer">
-            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
-          </button>
         </div>
-        {/* Content card */}
-        <div className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer">
-          <div className="flex gap-9 items-center px-6">
-            <div className="w-[33px] h-[44px] rounded-[2px] overflow-hidden relative flex-shrink-0">
-              <Image
-                src="/images/mobius-house.jpg"
-                alt="Window"
-                fill
-                className="object-cover"
-              />
+        {/* Content */}
+        {expanded && (
+          hasImages ? (
+            // Success state - show uploaded image
+            <div className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer">
+              <div className="flex gap-4 items-center">
+                <div className="w-[33px] h-[44px] rounded-[2px] overflow-hidden relative flex-shrink-0">
+                  {previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Window size"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <p className="text-base text-black font-normal leading-6">Large, full length windows</p>
+              </div>
             </div>
-            <p className="text-base text-black font-normal leading-6">Large, full length windows</p>
-          </div>
-        </div>
+          ) : (
+            // Empty state - add more images
+            <div
+              className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer"
+              onClick={handleAddImages}
+            >
+              <div className="flex gap-2 items-center">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px] opacity-50" />
+                </div>
+                <p className="text-base text-black/50 font-normal leading-6">Add more images</p>
+              </div>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
 }
 
 // Exterior color section component
-function ExteriorColorSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [brightness, setBrightness] = useState(35);
+const EXTERIOR_IMAGES = [
+  '/images/exterior 1.png',
+  '/images/exterior 2.png',
+  '/images/exterior 3.png',
+  '/images/exterior 4.png',
+];
 
-  // Color swatches - using placeholder colors matching the Figma
-  const colors = ['#E8E4DF', '#C4B8A8', '#D4C4A8', '#6B8CAE'];
+interface ExteriorColorSectionProps {
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  expanded?: boolean;
+  onToggle?: () => void;
+  selectedColor: number;
+  brightness: number;
+  onColorChange: (index: number) => void;
+  onBrightnessChange: (value: number) => void;
+}
 
+function ExteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange }: ExteriorColorSectionProps) {
   return (
     <div
-      className="border-b border-black/20 p-4"
+      className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-2 pt-2">
         {/* Header */}
-        <div className="flex items-center gap-[4px] py-1">
-          <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
-          <p className="text-base text-black font-normal">Exterior color</p>
-        </div>
-
-        {/* Color swatches */}
-        <div className="flex gap-[10px] items-start">
-          {colors.map((color, index) => (
-            <div
-              key={color}
-              className={`w-[47px] h-[47px] cursor-pointer ${
-                selectedColor === index ? 'border-2 border-[#4993fc]' : ''
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => setSelectedColor(index)}
+        <div className="flex items-center cursor-pointer" onClick={onToggle}>
+          <div className="flex items-center gap-[8px]">
+            <img
+              src="/triangle.svg"
+              alt=""
+              className={`w-[7px] h-[8px] transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
             />
-          ))}
-          {/* Add button */}
-          <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
-            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+            <p className="text-base text-black font-normal">Exterior color</p>
           </div>
         </div>
 
-        {/* Brightness slider */}
-        <div className="flex gap-4 items-center">
-          <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
-          <div className="flex-1 h-[28px] relative">
-            <div
-              className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] transition-all duration-200"
-              style={{ background: `linear-gradient(to right, white, ${colors[selectedColor]})` }}
-            />
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={brightness}
-              onChange={(e) => setBrightness(Number(e.target.value))}
-              className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
-            />
-            <div
-              className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
-              style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
-            />
-          </div>
-        </div>
+        {expanded && (
+          <>
+            {/* Exterior images */}
+            <div className="flex gap-[10px] items-start">
+              {EXTERIOR_IMAGES.map((src, index) => (
+                <div
+                  key={index}
+                  className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
+                    selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                  }`}
+                  onClick={() => onColorChange(index)}
+                >
+                  <Image
+                    src={src}
+                    alt={`Exterior style ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+              {/* Add button */}
+              <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
+                <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+              </div>
+            </div>
+
+            {/* Brightness slider */}
+            <div className="flex gap-4 items-center">
+              <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+              <div className="flex-1 h-[28px] relative">
+                <div
+                  className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] bg-gradient-to-r from-white to-gray-400"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={brightness}
+                  onChange={(e) => onBrightnessChange(Number(e.target.value))}
+                  className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+                />
+                <div
+                  className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+                  style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 // Interior color section component
-function InteriorColorSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [brightness, setBrightness] = useState(35);
+const INTERIOR_IMAGES = [
+  '/images/interior 1.png',
+  '/images/interior 2.png',
+  '/images/interior 3.png',
+  '/images/interior 4.png',
+];
 
-  // Color swatches - matching Figma (yellow, light blue, orange, purple, another)
-  const colors = ['#FFF9E0', '#E0E8F0', '#E8C8A0', '#C8A8D8', '#D8C8F0'];
+interface InteriorColorSectionProps {
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  expanded?: boolean;
+  onToggle?: () => void;
+  selectedColor: number;
+  brightness: number;
+  onColorChange: (index: number) => void;
+  onBrightnessChange: (value: number) => void;
+}
 
+function InteriorColorSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedColor, brightness, onColorChange, onBrightnessChange }: InteriorColorSectionProps) {
   return (
     <div
-      className="border-b border-black/20 p-4"
+      className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-2 pt-2">
         {/* Header */}
-        <div className="flex items-center gap-[4px]">
-          <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
-          <p className="text-base text-black font-normal">Interior color</p>
-        </div>
-
-        {/* Color swatches */}
-        <div className="flex flex-wrap gap-4 items-start w-[277px]">
-          {colors.map((color, index) => (
-            <div
-              key={color}
-              className={`w-[47px] h-[47px] cursor-pointer ${
-                selectedColor === index ? 'border-2 border-[#4993fc]' : ''
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => setSelectedColor(index)}
+        <div className="flex items-center cursor-pointer" onClick={onToggle}>
+          <div className="flex items-center gap-[8px]">
+            <img
+              src="/triangle.svg"
+              alt=""
+              className={`w-[7px] h-[8px] transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
             />
-          ))}
-          {/* Add button */}
-          <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
-            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+            <p className="text-base text-black font-normal">Interior color</p>
           </div>
         </div>
 
-        {/* Brightness slider */}
-        <div className="flex gap-4 items-center">
-          <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
-          <div className="flex-1 h-[28px] relative">
-            <div
-              className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] transition-all duration-200"
-              style={{ background: `linear-gradient(to right, white, ${colors[selectedColor]})` }}
-            />
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={brightness}
-              onChange={(e) => setBrightness(Number(e.target.value))}
-              className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
-            />
-            <div
-              className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
-              style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
-            />
-          </div>
-        </div>
+        {expanded && (
+          <>
+            {/* Interior images */}
+            <div className="flex gap-[10px] items-start">
+              {INTERIOR_IMAGES.map((src, index) => (
+                <div
+                  key={index}
+                  className={`w-[47px] h-[47px] cursor-pointer overflow-hidden relative ${
+                    selectedColor === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                  }`}
+                  onClick={() => onColorChange(index)}
+                >
+                  <Image
+                    src={src}
+                    alt={`Interior style ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+              {/* Add button */}
+              <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
+                <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+              </div>
+            </div>
+
+            {/* Brightness slider */}
+            <div className="flex gap-4 items-center">
+              <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+              <div className="flex-1 h-[28px] relative">
+                <div
+                  className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] bg-gradient-to-r from-white to-gray-400"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={brightness}
+                  onChange={(e) => onBrightnessChange(Number(e.target.value))}
+                  className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+                />
+                <div
+                  className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+                  style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 // Curtain style section component
-function CurtainStyleSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
-  const [selectedCurtain, setSelectedCurtain] = useState(0);
+const CURTAIN_IMAGES = [
+  '/images/green curtain.png',
+  '/images/beige curtain.png',
+  '/images/ash curtain.png',
+  '/images/red curtain.png',
+];
 
-  // Curtain placeholder colors/styles
-  const curtainStyles = [
-    'bg-gradient-to-b from-[#7BA88E] to-[#4A7A5E]',
-    'bg-gradient-to-b from-[#F5E6D3] to-[#E8D4B8]',
-    'bg-gradient-to-b from-[#E8E4E0] to-[#D8D4D0]',
-    'bg-gradient-to-b from-[#C84A32] to-[#A83828]',
-  ];
+interface CurtainStyleSectionProps {
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  expanded?: boolean;
+  onToggle?: () => void;
+  selectedCurtain: number;
+  onCurtainChange: (index: number) => void;
+}
+
+function CurtainStyleSection({ onMouseEnter, onMouseLeave, expanded = true, onToggle, selectedCurtain, onCurtainChange }: CurtainStyleSectionProps) {
+  const curtainImages = CURTAIN_IMAGES;
 
   return (
     <div
-      className="border-b border-black/20 p-4"
+      className="border-b border-black/20 py-2 px-4"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="flex flex-col gap-4">
+      <div className={`flex flex-col gap-4 pt-2 ${expanded ? 'pb-8' : 'pb-2'}`}>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-[4px]">
-            <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+        <div
+          className="flex items-center cursor-pointer"
+          onClick={onToggle}
+        >
+          <div className="flex items-center gap-[8px]">
+            <img
+              src="/triangle.svg"
+              alt=""
+              className={`w-[7px] h-[8px] transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+            />
             <p className="text-base text-black font-normal">Curtain style</p>
           </div>
-          <button className="w-5 h-5 flex items-center justify-center cursor-pointer">
-            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
-          </button>
         </div>
 
-        {/* Curtain images */}
-        <div className="flex gap-[10px] items-start">
-          {curtainStyles.map((style, index) => (
-            <div
-              key={index}
-              className={`w-[65px] h-[80px] rounded-[5px] cursor-pointer ${style} ${
-                selectedCurtain === index ? 'border-2 border-[#4993fc]' : 'border border-black/20'
-              }`}
-              onClick={() => setSelectedCurtain(index)}
-            >
-              {/* Vertical fold lines */}
-              <div className="w-full h-full flex opacity-30">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex-1 border-r border-black/10 last:border-r-0" />
-                ))}
+        {expanded && (
+          /* Curtain images */
+          <div className="flex gap-[10px] items-start">
+            {curtainImages.map((src, index) => (
+              <div
+                key={index}
+                className={`w-[65px] h-[80px] rounded-[5px] cursor-pointer overflow-hidden relative ${
+                  selectedCurtain === index ? 'ring-2 ring-[#4993fc]' : 'border border-black/20'
+                }`}
+                onClick={() => onCurtainChange(index)}
+              >
+                <Image
+                  src={src}
+                  alt={`Curtain style ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+// Edit data interface - tracks which edits the user has made
+export interface EditData {
+  windowSizeImage: string | null; // Preview URL of uploaded window size reference
+  exteriorImage: { image: string; brightness: number } | null; // null if unchanged from default
+  interiorImage: { image: string; brightness: number } | null; // null if unchanged from default
+  curtainImage: string | null; // Path to selected curtain image, null if unchanged
 }
 
 interface ObjectsPanelProps {
@@ -334,6 +471,7 @@ interface ObjectsPanelProps {
   isHoveringGroundDot?: boolean;
   onImageEdited?: (imageUrl: string, prompt: string) => void;
   onEditGeneratingChange?: (isGenerating: boolean) => void;
+  onEditDataChange?: (editData: EditData) => void;
 }
 
 export default function ObjectsPanel({
@@ -346,13 +484,75 @@ export default function ObjectsPanel({
   isHoveringGroundDot,
   onImageEdited,
   onEditGeneratingChange,
+  onEditDataChange,
 }: ObjectsPanelProps) {
   const [activeTab, setActiveTab] = useState<'objects' | 'prompt'>('objects');
   const [isHoveringArchStyle, setIsHoveringArchStyle] = useState(false);
+  const [isHoveringWindowSize, setIsHoveringWindowSize] = useState(false);
   const [isHoveringExteriorColor, setIsHoveringExteriorColor] = useState(false);
   const [isHoveringInteriorColor, setIsHoveringInteriorColor] = useState(false);
   const [isHoveringCurtainStyle, setIsHoveringCurtainStyle] = useState(false);
+  const [archStyleExpanded, setArchStyleExpanded] = useState(true);
+  const [windowSizeExpanded, setWindowSizeExpanded] = useState(true);
+  const [exteriorColorExpanded, setExteriorColorExpanded] = useState(true);
+  const [interiorColorExpanded, setInteriorColorExpanded] = useState(true);
+  const [curtainStyleExpanded, setCurtainStyleExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit state - track user changes
+  const [windowSizeImage, setWindowSizeImage] = useState<string | null>(null);
+  const [exteriorColorIndex, setExteriorColorIndex] = useState(0);
+  const [exteriorBrightness, setExteriorBrightness] = useState(35);
+  const [exteriorChanged, setExteriorChanged] = useState(false);
+  const [interiorColorIndex, setInteriorColorIndex] = useState(0);
+  const [interiorBrightness, setInteriorBrightness] = useState(35);
+  const [interiorChanged, setInteriorChanged] = useState(false);
+  const [curtainIndex, setCurtainIndex] = useState(0);
+  const [curtainChanged, setCurtainChanged] = useState(false);
+
+  // Notify parent of edit data changes
+  const getEditData = (): EditData => ({
+    windowSizeImage,
+    exteriorImage: exteriorChanged ? { image: EXTERIOR_IMAGES[exteriorColorIndex], brightness: exteriorBrightness } : null,
+    interiorImage: interiorChanged ? { image: INTERIOR_IMAGES[interiorColorIndex], brightness: interiorBrightness } : null,
+    curtainImage: curtainChanged ? CURTAIN_IMAGES[curtainIndex] : null,
+  });
+
+  // Handle edit state changes
+  const handleWindowSizeChange = (url: string | null) => {
+    setWindowSizeImage(url);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleExteriorColorChange = (index: number) => {
+    setExteriorColorIndex(index);
+    setExteriorChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleExteriorBrightnessChange = (value: number) => {
+    setExteriorBrightness(value);
+    setExteriorChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleInteriorColorChange = (index: number) => {
+    setInteriorColorIndex(index);
+    setInteriorChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleInteriorBrightnessChange = (value: number) => {
+    setInteriorBrightness(value);
+    setInteriorChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
+
+  const handleCurtainChange = (index: number) => {
+    setCurtainIndex(index);
+    setCurtainChanged(true);
+    setTimeout(() => onEditDataChange?.(getEditData()), 0);
+  };
 
   const handleAddReferenceImage = () => {
     fileInputRef.current?.click();
@@ -425,36 +625,50 @@ export default function ObjectsPanel({
       </div>
 
       {/* Content */}
-      <div className="bg-white flex-1 overflow-auto">
+      <div className="bg-white flex-1 overflow-auto relative">
         {activeTab === 'objects' ? (
-          <div className="flex flex-col gap-[10px] pt-4">
-            <div className="flex flex-col gap-4">
-              {/* Description box */}
-              <div className="px-4">
+          <div className="flex flex-col">
+            {/* Sticky description box */}
+            <div className="sticky top-0 z-10">
+              <div className="bg-white pt-4 pb-4 px-4 border-b border-[#d9d9d9]">
                 <div className="bg-[#f0f0f0] border border-[#dbdbdb] rounded-[13px] px-[15px] py-2">
                   <p className="text-base text-black font-normal leading-[26px]">
-                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>A </span>
-                    <span className={`transition-all duration-150 ${isHoveringArchStyle ? 'underline' : ''} ${isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>modern, minimalist house</span>
-                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}> with large windows, and a </span>
-                    <span className={`transition-all duration-150 ${isHoveringExteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>mix of light gray and light brown wood sliding</span>
-                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>. The </span>
-                    <span className={`transition-all duration-150 ${isHoveringInteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>interior of the house should be well lit</span>
-                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>, with fractions of the house partially </span>
-                    <span className={`transition-all duration-150 ${isHoveringCurtainStyle ? 'underline' : ''} ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor ? 'opacity-50' : ''}`}>covered by curtains</span>
-                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>.</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>A </span>
+                    <span className={`transition-all duration-150 ${isHoveringArchStyle ? 'underline' : ''} ${isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>modern, minimalist house</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}> with </span>
+                    <span className={`transition-all duration-150 ${isHoveringWindowSize ? 'underline' : ''} ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>large windows</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>, and a </span>
+                    <span className={`transition-all duration-150 ${isHoveringExteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringWindowSize || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>mix of light gray and light brown wood sliding</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>. The </span>
+                    <span className={`transition-all duration-150 ${isHoveringInteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>interior of the house should be well lit</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>, with fractions of the house partially </span>
+                    <span className={`transition-all duration-150 ${isHoveringCurtainStyle ? 'underline' : ''} ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor ? 'opacity-50' : ''}`}>covered by curtains</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringWindowSize || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>.</span>
                   </p>
                 </div>
               </div>
+              {/* Gradient fade */}
+              <div className="h-4 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+            </div>
 
+            {/* Scrollable sections */}
+            <div className="flex flex-col">
               {/* Divider */}
               <div className="h-px bg-[#d9d9d9] w-full" />
 
               {/* Reference images section */}
-              <div className="border-b border-black/20 pb-4 pt-1 px-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-[4px]">
-                      <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+              <div className="border-b border-black/20 py-2 px-4">
+                <div className="flex flex-col gap-3 pt-2 pb-2">
+                  <div
+                    className="flex items-center cursor-pointer"
+                    onClick={() => setArchStyleExpanded(!archStyleExpanded)}
+                  >
+                    <div className="flex items-center gap-[8px]">
+                      <img
+                        src="/triangle.svg"
+                        alt=""
+                        className={`w-[7px] h-[8px] transition-transform duration-200 ${archStyleExpanded ? 'rotate-90' : ''}`}
+                      />
                       <p className="text-base text-black font-normal">Architectural style</p>
                     </div>
                     <input
@@ -465,85 +679,100 @@ export default function ObjectsPanel({
                       multiple
                       className="hidden"
                     />
-                    <button
-                      className="w-5 h-5 flex items-center justify-center cursor-pointer"
-                      onClick={handleAddReferenceImage}
-                    >
-                      <img
-                        src="/images/plus-icon.svg"
-                        alt="Add"
-                        className="w-[15px] h-[15px]"
-                      />
-                    </button>
                   </div>
 
-                  {/* Reference image cards */}
-                  <div
-                    className="flex flex-col gap-2"
-                    onMouseEnter={() => setIsHoveringArchStyle(true)}
-                    onMouseLeave={() => setIsHoveringArchStyle(false)}
-                  >
-                    {/* Mobius house card */}
-                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
-                      <div className="flex gap-4 items-center">
-                        <div className="w-[77px] h-[38px] rounded-[2px] overflow-hidden relative">
-                          <Image
-                            src="/images/mobius-house.jpg"
-                            alt="Mobius house"
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% to-black/90" />
-                        </div>
-                        <div className="flex flex-col w-[179px]">
-                          <p className="text-base text-black font-normal leading-6">Mobius house</p>
-                          <p className="text-base text-black/50 font-normal leading-6">Brutalism &amp; Concrete</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Interior card */}
-                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
-                      <div className="flex gap-4 items-center">
-                        <div className="w-[77px] h-[48px] flex items-center justify-center">
-                          <div className="w-[32px] h-[48px] rounded-[3px] border border-[#cfcfcf] overflow-hidden relative">
+                  {archStyleExpanded && (
+                    /* Reference image cards */
+                    <div
+                      className="flex flex-col gap-2"
+                      onMouseEnter={() => setIsHoveringArchStyle(true)}
+                      onMouseLeave={() => setIsHoveringArchStyle(false)}
+                    >
+                      {/* Mobius house card */}
+                      <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
+                        <div className="flex gap-4 items-center">
+                          <div className="w-[77px] h-[38px] rounded-[2px] overflow-hidden relative">
                             <Image
-                              src="/images/interior.jpg"
-                              alt="Interior"
+                              src="/images/mobius-house.jpg"
+                              alt="Mobius house"
                               fill
                               className="object-cover"
                             />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% to-black/90" />
+                          </div>
+                          <div className="flex flex-col w-[179px]">
+                            <p className="text-base text-black font-normal leading-6">Mobius house</p>
+                            <p className="text-base text-black/50 font-normal leading-6">Brutalism &amp; Concrete</p>
                           </div>
                         </div>
-                        <div className="flex flex-col w-[179px]">
-                          <p className="text-base text-black font-normal leading-6">Interior </p>
-                          <p className="text-base text-black/50 font-normal leading-6">Jagged, Interior</p>
+                      </div>
+
+                      {/* Interior card */}
+                      <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
+                        <div className="flex gap-4 items-center">
+                          <div className="w-[77px] h-[48px] flex items-center justify-center">
+                            <div className="w-[32px] h-[48px] rounded-[3px] border border-[#cfcfcf] overflow-hidden relative">
+                              <Image
+                                src="/images/interior.jpg"
+                                alt="Interior"
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col w-[179px]">
+                            <p className="text-base text-black font-normal leading-6">Interior </p>
+                            <p className="text-base text-black/50 font-normal leading-6">Jagged, Interior</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               {/* Window size section */}
-              <WindowSizeSection />
+              <WindowSizeSection
+                onMouseEnter={() => setIsHoveringWindowSize(true)}
+                onMouseLeave={() => setIsHoveringWindowSize(false)}
+                expanded={windowSizeExpanded}
+                onToggle={() => setWindowSizeExpanded(!windowSizeExpanded)}
+                previewUrl={windowSizeImage}
+                onImageChange={handleWindowSizeChange}
+              />
 
               {/* Exterior color section */}
               <ExteriorColorSection
                 onMouseEnter={() => setIsHoveringExteriorColor(true)}
                 onMouseLeave={() => setIsHoveringExteriorColor(false)}
+                expanded={exteriorColorExpanded}
+                onToggle={() => setExteriorColorExpanded(!exteriorColorExpanded)}
+                selectedColor={exteriorColorIndex}
+                brightness={exteriorBrightness}
+                onColorChange={handleExteriorColorChange}
+                onBrightnessChange={handleExteriorBrightnessChange}
               />
 
               {/* Interior color section */}
               <InteriorColorSection
                 onMouseEnter={() => setIsHoveringInteriorColor(true)}
                 onMouseLeave={() => setIsHoveringInteriorColor(false)}
+                expanded={interiorColorExpanded}
+                onToggle={() => setInteriorColorExpanded(!interiorColorExpanded)}
+                selectedColor={interiorColorIndex}
+                brightness={interiorBrightness}
+                onColorChange={handleInteriorColorChange}
+                onBrightnessChange={handleInteriorBrightnessChange}
               />
 
               {/* Curtain style section */}
               <CurtainStyleSection
                 onMouseEnter={() => setIsHoveringCurtainStyle(true)}
                 onMouseLeave={() => setIsHoveringCurtainStyle(false)}
+                expanded={curtainStyleExpanded}
+                onToggle={() => setCurtainStyleExpanded(!curtainStyleExpanded)}
+                selectedCurtain={curtainIndex}
+                onCurtainChange={handleCurtainChange}
               />
             </div>
           </div>

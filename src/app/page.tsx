@@ -11,11 +11,17 @@ export interface GeneratedImage {
   prompt: string;
 }
 
+export interface SelectedObject {
+  name: string;
+  image: string;
+}
+
 export default function Home() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEditGenerating, setIsEditGenerating] = useState(false);
+  const [selectedObject, setSelectedObject] = useState<SelectedObject | null>(null);
 
   const handleImageGenerated = (imageUrl: string, prompt: string) => {
     const newImage: GeneratedImage = {
@@ -35,6 +41,8 @@ export default function Home() {
       <ChatPanel
         onImageGenerated={handleImageGenerated}
         onGeneratingChange={setIsGenerating}
+        selectedObject={selectedObject}
+        onClearSelectedObject={() => setSelectedObject(null)}
       />
       <Canvas
         images={images}
@@ -43,6 +51,7 @@ export default function Home() {
         isGenerating={isGenerating || isEditGenerating}
         onImageEdited={handleImageGenerated}
         onEditGeneratingChange={setIsEditGenerating}
+        onObjectSelected={setSelectedObject}
       />
     </div>
   );
