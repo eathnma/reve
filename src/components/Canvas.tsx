@@ -61,27 +61,30 @@ export default function Canvas() {
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-white h-[112px] flex items-center justify-between px-6 py-5 border-t border-[#d9d9d9]">
-        {/* Thumbnail */}
-        <div className="w-[81px] h-[81px] relative">
-          <div className="absolute inset-[10px_10px_10px_10px] rounded-[13px] border-8 border-[#d3e2f5] overflow-hidden">
-            <Image
-              src="/images/thumbnail.jpg"
-              alt="Thumbnail"
-              fill
-              className="object-cover rounded-[13px]"
-            />
+      <div className="bg-white h-[112px] flex items-center border-t border-[#d9d9d9]">
+        {/* Content area aligned with grey canvas */}
+        <div className="flex-1 flex items-center justify-between pl-6 pr-6 mr-[319px]">
+          {/* Thumbnail */}
+          <div className="w-[81px] h-[81px] relative">
+            <div className="absolute inset-[10px_10px_10px_10px] rounded-[13px] border-8 border-[#d3e2f5] overflow-hidden">
+              <Image
+                src="/images/thumbnail.jpg"
+                alt="Thumbnail"
+                fill
+                className="object-cover rounded-[13px]"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-3 items-center">
-          <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
-            <span className="text-[16.28px] font-medium">Cancel</span>
-          </button>
-          <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
-            <span className="text-[16.28px] font-medium">Apply edits</span>
-          </button>
+          {/* Action buttons */}
+          <div className="flex gap-3 items-center">
+            <button className="border border-black/20 text-black rounded-full px-[12.8px] py-[10.5px]">
+              <span className="text-[16.28px] font-medium">Cancel</span>
+            </button>
+            <button className="bg-black text-white rounded-full px-[12.8px] py-[10.5px]">
+              <span className="text-[16.28px] font-medium">Apply edits</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
