@@ -23,7 +23,8 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { createImage, isLoading, error } = useReveApi();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { editImage, isLoading, error } = useReveApi();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -52,30 +53,57 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Call Reve API
-    const result = await createImage({ prompt });
+    try {
+      // Always use the default canvas house image as reference
+      const sourceImageUrl = '/images/canvas-house.jpg';
+      const response = await fetch(sourceImageUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const imageBase64: string = await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
 
-    if (result) {
-      const imageUrl = base64ToDataUrl(result.image);
+      // Call Reve edit API
+      const result = await editImage({
+        edit_instruction: prompt,
+        reference_image: imageBase64,
+      });
 
-      // Add assistant response with generated image
-      const assistantMessage: Message = {
-        id: generateId(),
-        type: 'assistant',
-        content: 'Here is your generated image:',
-        imageUrl,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+      if (result) {
+        const imageUrl = base64ToDataUrl(result.image);
 
-      // Notify parent component about the new image with prompt
-      onImageGenerated?.(imageUrl, prompt);
-    } else if (error) {
-      // Add error message
+        // Add assistant response with generated image
+        const assistantMessage: Message = {
+          id: generateId(),
+          type: 'assistant',
+          content: 'Here is your edited image:',
+          imageUrl,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Notify parent component about the new image with prompt
+        onImageGenerated?.(imageUrl, prompt);
+      } else if (error) {
+        // Add error message
+        const errorMessage: Message = {
+          id: generateId(),
+          type: 'assistant',
+          content: `Sorry, I encountered an error: ${error.message}`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (err) {
       const errorMessage: Message = {
         id: generateId(),
         type: 'assistant',
-        content: `Sorry, I encountered an error: ${error.message}`,
+        content: `Sorry, I encountered an error: ${err instanceof Error ? err.message : 'Unknown error'}`,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -183,48 +211,55 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
 
       {/* Input bar */}
       <div className="flex flex-col items-start p-[10px] w-full">
-        <div className="bg-[#f0f0f0] border border-[#d9d9d9] rounded-[32px] px-[21px] py-6 w-full flex items-end justify-between">
+        <div
+          className="bg-[#f0f0f0] border border-[#d9d9d9] rounded-[32px] px-[21px] py-6 w-full flex items-end justify-between cursor-text transition-all duration-150 ease-out"
+          onClick={() => textareaRef.current?.focus()}
+        >
           <div className="flex flex-col gap-6 items-start flex-1">
             <textarea
+              ref={textareaRef}
               value={inputValue}
               onChange={(e) => {
                 setInputValue(e.target.value);
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
+                const textarea = e.target;
+                textarea.style.height = 'auto';
+                requestAnimationFrame(() => {
+                  textarea.style.height = textarea.scrollHeight + 'px';
+                });
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask Reve"
               rows={1}
-              className="text-base text-black font-normal bg-transparent outline-none w-full placeholder:text-black/60 resize-none overflow-hidden"
+              className="text-base text-black font-normal bg-transparent outline-none w-full placeholder:text-black/60 resize-none overflow-hidden transition-[height] duration-150 ease-out"
             />
             <div className="flex gap-2 items-start">
-              <div className="w-8 h-8">
+              <button className="w-8 h-8 cursor-pointer">
                 <Image
                   src="/images/attachment-1.svg"
                   alt="Attachment"
                   width={32}
                   height={32}
                 />
-              </div>
-              <div className="w-8 h-8">
+              </button>
+              <button className="w-8 h-8 cursor-pointer">
                 <Image
                   src="/images/attachment-2.svg"
                   alt="Mention"
                   width={32}
                   height={32}
                 />
-              </div>
-              <div className="w-8 h-8">
+              </button>
+              <button className="w-8 h-8 cursor-pointer">
                 <Image
                   src="/images/attachment-3.svg"
                   alt="Command"
                   width={32}
                   height={32}
                 />
-              </div>
+              </button>
             </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <button className="flex gap-2 items-center cursor-pointer">
             <p className="text-base text-black font-medium">
               Auto
             </p>
@@ -236,7 +271,7 @@ export default function ChatPanel({ onImageGenerated, onGeneratingChange }: Chat
                 height={32}
               />
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>

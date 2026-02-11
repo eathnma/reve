@@ -53,8 +53,10 @@ export interface CreateImageRequest extends BaseRequestOptions {
 
 // Edit endpoint
 export interface EditImageRequest extends BaseRequestOptions {
-  prompt: string;
-  image: string; // base64 encoded image
+  edit_instruction: string;
+  reference_image: string; // base64 encoded image
+  aspect_ratio?: string;
+  version?: string; // 'latest', 'latest-fast', 'reve-edit@20250915', 'reve-edit-fast@20251030'
 }
 
 // Remix endpoint
@@ -137,9 +139,20 @@ export class ReveAPI {
     };
 
     if (!response.ok) {
-      const errorData = await response.json() as ReveErrorResponse;
+      let errorData: ReveErrorResponse;
+      let rawText = '';
+      try {
+        rawText = await response.text();
+        errorData = JSON.parse(rawText) as ReveErrorResponse;
+      } catch {
+        errorData = { error: { code: 'PARSE_ERROR', message: `HTTP ${response.status}: ${response.statusText}` } };
+      }
+      console.error('Reve API Error - Status:', response.status);
+      console.error('Reve API Error - Status Text:', response.statusText);
+      console.error('Reve API Error - Raw Response:', rawText);
+      console.error('Reve API Error - Parsed:', JSON.stringify(errorData));
       throw new ReveAPIError(
-        errorData.error?.message || 'Unknown error',
+        errorData.error?.message || `HTTP ${response.status}: ${rawText || response.statusText}`,
         response.status,
         errorData.error?.code || headers['x-reve-error-code'] || 'UNKNOWN',
         headers['x-reve-request-id']
@@ -198,9 +211,20 @@ export class ReveAPI {
     options?: { responseFormat?: ResponseFormat }
   ): Promise<ReveImageResponse> {
     const { breadcrumb, ...body } = request;
+    // Use latest version by default
+    const requestBody = {
+      ...body,
+      version: body.version || 'latest',
+    };
+    console.log('Reve Edit API Request:', {
+      endpoint: '/image/edit',
+      version: requestBody.version,
+      edit_instruction: requestBody.edit_instruction,
+      reference_image_length: requestBody.reference_image?.length
+    });
     const { data } = await this.request<ReveImageResponse>(
       '/image/edit',
-      body,
+      requestBody,
       { responseFormat: options?.responseFormat, breadcrumb }
     );
     return data;

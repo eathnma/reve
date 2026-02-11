@@ -15,6 +15,7 @@ export default function Home() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditGenerating, setIsEditGenerating] = useState(false);
 
   const handleImageGenerated = (imageUrl: string, prompt: string) => {
     const newImage: GeneratedImage = {
@@ -39,7 +40,9 @@ export default function Home() {
         images={images}
         selectedImageId={selectedImageId}
         onSelectImage={setSelectedImageId}
-        isGenerating={isGenerating}
+        isGenerating={isGenerating || isEditGenerating}
+        onImageEdited={handleImageGenerated}
+        onEditGeneratingChange={setIsEditGenerating}
       />
     </div>
   );

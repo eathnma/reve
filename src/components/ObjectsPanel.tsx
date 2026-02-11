@@ -38,11 +38,18 @@ function PencilIcon() {
 interface PropertyRowProps {
   label: string;
   hasColorDot?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  className?: string;
 }
 
-function PropertyRow({ label, hasColorDot }: PropertyRowProps) {
+function PropertyRow({ label, hasColorDot, onMouseEnter, onMouseLeave, className }: PropertyRowProps) {
   return (
-    <div className="border-b border-black/20 flex items-center h-[56px] px-4 w-full">
+    <div
+      className={`border-b border-black/20 flex items-center p-4 w-full cursor-pointer ${className || ''}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <div className="flex items-center justify-between w-full">
         <div className="flex gap-2 items-center">
           <p className="text-base text-black font-normal">{label}</p>
@@ -62,12 +69,13 @@ interface ObjectItemProps {
   name: string;
   image: string;
   onDoubleClick?: () => void;
+  isHovered?: boolean;
 }
 
-function ObjectItem({ name, image, onDoubleClick }: ObjectItemProps) {
+function ObjectItem({ name, image, onDoubleClick, isHovered }: ObjectItemProps) {
   return (
     <div
-      className="group flex items-center w-full cursor-pointer rounded-[10px] hover:bg-[#f0f0f0] transition-colors duration-150 px-2 py-1"
+      className={`group flex items-center w-full cursor-pointer rounded-[10px] transition-colors duration-150 px-2 py-1 ${isHovered ? 'bg-[#f0f0f0]' : 'hover:bg-[#f0f0f0]'}`}
       onDoubleClick={onDoubleClick}
     >
       {/* Thumbnail */}
@@ -84,7 +92,7 @@ function ObjectItem({ name, image, onDoubleClick }: ObjectItemProps) {
       <p className="text-base text-black font-normal ml-2 flex-1">{name}</p>
 
       {/* Action icons - only visible on hover */}
-      <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+      <div className={`flex gap-2 items-center transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
         <button className="w-5 h-5 flex items-center justify-center hover:opacity-70">
           <TrashIcon />
         </button>
@@ -96,13 +104,254 @@ function ObjectItem({ name, image, onDoubleClick }: ObjectItemProps) {
   );
 }
 
+// Window size section component
+function WindowSizeSection() {
+  return (
+    <div className="border-b border-black/20 pb-4 pt-1 px-4">
+      <div className="flex flex-col gap-3">
+        {/* Header */}
+        <div className="flex items-center justify-between pt-4 pb-2">
+          <div className="flex items-center gap-[4px]">
+            <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+            <p className="text-base text-black font-normal">Window size</p>
+          </div>
+          <button className="w-5 h-5 flex items-center justify-center cursor-pointer">
+            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+          </button>
+        </div>
+        {/* Content card */}
+        <div className="border border-black/10 rounded-[5px] p-[10px] cursor-pointer">
+          <div className="flex gap-9 items-center px-6">
+            <div className="w-[33px] h-[44px] rounded-[2px] overflow-hidden relative flex-shrink-0">
+              <Image
+                src="/images/mobius-house.jpg"
+                alt="Window"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <p className="text-base text-black font-normal leading-6">Large, full length windows</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Exterior color section component
+function ExteriorColorSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [brightness, setBrightness] = useState(35);
+
+  // Color swatches - using placeholder colors matching the Figma
+  const colors = ['#E8E4DF', '#C4B8A8', '#D4C4A8', '#6B8CAE'];
+
+  return (
+    <div
+      className="border-b border-black/20 p-4"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center gap-[4px] py-1">
+          <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+          <p className="text-base text-black font-normal">Exterior color</p>
+        </div>
+
+        {/* Color swatches */}
+        <div className="flex gap-[10px] items-start">
+          {colors.map((color, index) => (
+            <div
+              key={color}
+              className={`w-[47px] h-[47px] cursor-pointer ${
+                selectedColor === index ? 'border-2 border-[#4993fc]' : ''
+              }`}
+              style={{ backgroundColor: color }}
+              onClick={() => setSelectedColor(index)}
+            />
+          ))}
+          {/* Add button */}
+          <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
+            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+          </div>
+        </div>
+
+        {/* Brightness slider */}
+        <div className="flex gap-4 items-center">
+          <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+          <div className="flex-1 h-[28px] relative">
+            <div
+              className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] transition-all duration-200"
+              style={{ background: `linear-gradient(to right, white, ${colors[selectedColor]})` }}
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={brightness}
+              onChange={(e) => setBrightness(Number(e.target.value))}
+              className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+            />
+            <div
+              className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+              style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Interior color section component
+function InteriorColorSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [brightness, setBrightness] = useState(35);
+
+  // Color swatches - matching Figma (yellow, light blue, orange, purple, another)
+  const colors = ['#FFF9E0', '#E0E8F0', '#E8C8A0', '#C8A8D8', '#D8C8F0'];
+
+  return (
+    <div
+      className="border-b border-black/20 p-4"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center gap-[4px]">
+          <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+          <p className="text-base text-black font-normal">Interior color</p>
+        </div>
+
+        {/* Color swatches */}
+        <div className="flex flex-wrap gap-4 items-start w-[277px]">
+          {colors.map((color, index) => (
+            <div
+              key={color}
+              className={`w-[47px] h-[47px] cursor-pointer ${
+                selectedColor === index ? 'border-2 border-[#4993fc]' : ''
+              }`}
+              style={{ backgroundColor: color }}
+              onClick={() => setSelectedColor(index)}
+            />
+          ))}
+          {/* Add button */}
+          <div className="w-[47px] h-[47px] border border-black/25 bg-white flex items-center justify-center cursor-pointer">
+            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+          </div>
+        </div>
+
+        {/* Brightness slider */}
+        <div className="flex gap-4 items-center">
+          <p className="text-base text-black/65 font-normal whitespace-nowrap">Brightness</p>
+          <div className="flex-1 h-[28px] relative">
+            <div
+              className="absolute top-[4px] left-0 right-0 h-[19px] rounded-full border border-[#c6c6c6] transition-all duration-200"
+              style={{ background: `linear-gradient(to right, white, ${colors[selectedColor]})` }}
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={brightness}
+              onChange={(e) => setBrightness(Number(e.target.value))}
+              className="absolute top-0 left-0 right-0 h-full opacity-0 cursor-grab active:cursor-grabbing z-10"
+            />
+            <div
+              className="absolute top-[2px] w-6 h-6 bg-white rounded-full border border-black/20 shadow-sm pointer-events-none"
+              style={{ left: `${brightness}%`, transform: 'translateX(-50%)' }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Curtain style section component
+function CurtainStyleSection({ onMouseEnter, onMouseLeave }: { onMouseEnter?: () => void; onMouseLeave?: () => void }) {
+  const [selectedCurtain, setSelectedCurtain] = useState(0);
+
+  // Curtain placeholder colors/styles
+  const curtainStyles = [
+    'bg-gradient-to-b from-[#7BA88E] to-[#4A7A5E]',
+    'bg-gradient-to-b from-[#F5E6D3] to-[#E8D4B8]',
+    'bg-gradient-to-b from-[#E8E4E0] to-[#D8D4D0]',
+    'bg-gradient-to-b from-[#C84A32] to-[#A83828]',
+  ];
+
+  return (
+    <div
+      className="border-b border-black/20 p-4"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[4px]">
+            <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+            <p className="text-base text-black font-normal">Curtain style</p>
+          </div>
+          <button className="w-5 h-5 flex items-center justify-center cursor-pointer">
+            <img src="/images/plus-icon.svg" alt="Add" className="w-[15px] h-[15px]" />
+          </button>
+        </div>
+
+        {/* Curtain images */}
+        <div className="flex gap-[10px] items-start">
+          {curtainStyles.map((style, index) => (
+            <div
+              key={index}
+              className={`w-[65px] h-[80px] rounded-[5px] cursor-pointer ${style} ${
+                selectedCurtain === index ? 'border-2 border-[#4993fc]' : 'border border-black/20'
+              }`}
+              onClick={() => setSelectedCurtain(index)}
+            >
+              {/* Vertical fold lines */}
+              <div className="w-full h-full flex opacity-30">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex-1 border-r border-black/10 last:border-r-0" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface ObjectsPanelProps {
   isSelected?: boolean;
   onSelectObject?: () => void;
+  onShowPrompt?: () => void;
+  isHoveringHouseDot?: boolean;
+  isHoveringSkyDot?: boolean;
+  isHoveringForestDot?: boolean;
+  isHoveringGroundDot?: boolean;
+  onImageEdited?: (imageUrl: string, prompt: string) => void;
+  onEditGeneratingChange?: (isGenerating: boolean) => void;
 }
 
-export default function ObjectsPanel({ isSelected = true, onSelectObject }: ObjectsPanelProps) {
-  const [activeTab, setActiveTab] = useState<'objects' | 'edit'>('objects');
+export default function ObjectsPanel({
+  isSelected = true,
+  onSelectObject,
+  onShowPrompt,
+  isHoveringHouseDot,
+  isHoveringSkyDot,
+  isHoveringForestDot,
+  isHoveringGroundDot,
+  onImageEdited,
+  onEditGeneratingChange,
+}: ObjectsPanelProps) {
+  const [activeTab, setActiveTab] = useState<'objects' | 'prompt'>('objects');
+  const [isHoveringArchStyle, setIsHoveringArchStyle] = useState(false);
+  const [isHoveringExteriorColor, setIsHoveringExteriorColor] = useState(false);
+  const [isHoveringInteriorColor, setIsHoveringInteriorColor] = useState(false);
+  const [isHoveringCurtainStyle, setIsHoveringCurtainStyle] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddReferenceImage = () => {
@@ -133,19 +382,22 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
               Objects
             </button>
             <button
-              onClick={() => setActiveTab('edit')}
-              className={`text-base font-medium cursor-pointer ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
+              onClick={() => {
+                setActiveTab('prompt');
+                onShowPrompt?.();
+              }}
+              className={`text-base font-medium cursor-pointer ${activeTab === 'prompt' ? 'text-black' : 'text-black/50'}`}
             >
-              Edit
+              Prompt
             </button>
           </div>
         </div>
 
         <div className="flex flex-col gap-3 pt-4 px-2">
-          <ObjectItem name="House" image="/images/house.png" onDoubleClick={onSelectObject} />
-          <ObjectItem name="Forest" image="/images/forset.png" onDoubleClick={onSelectObject} />
-          <ObjectItem name="Sky" image="/images/sky.png" onDoubleClick={onSelectObject} />
-          <ObjectItem name="Ground" image="/images/ground.png" onDoubleClick={onSelectObject} />
+          <ObjectItem name="House" image="/images/house.png" onDoubleClick={onSelectObject} isHovered={isHoveringHouseDot} />
+          <ObjectItem name="Forest" image="/images/forset.png" onDoubleClick={onSelectObject} isHovered={isHoveringForestDot} />
+          <ObjectItem name="Sky" image="/images/sky.png" onDoubleClick={onSelectObject} isHovered={isHoveringSkyDot} />
+          <ObjectItem name="Ground" image="/images/ground.png" onDoubleClick={onSelectObject} isHovered={isHoveringGroundDot} />
         </div>
       </div>
     );
@@ -164,10 +416,10 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
             Objects
           </button>
           <button
-            onClick={() => setActiveTab('edit')}
-            className={`text-base font-medium cursor-pointer ${activeTab === 'edit' ? 'text-black' : 'text-black/50'}`}
+            onClick={() => setActiveTab('prompt')}
+            className={`text-base font-medium cursor-pointer ${activeTab === 'prompt' ? 'text-black' : 'text-black/50'}`}
           >
-            Edit
+            Prompt
           </button>
         </div>
       </div>
@@ -181,7 +433,15 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
               <div className="px-4">
                 <div className="bg-[#f0f0f0] border border-[#dbdbdb] rounded-[13px] px-[15px] py-2">
                   <p className="text-base text-black font-normal leading-[26px]">
-                    A modern, minimalist house with large windows, and a mix of light gray and light brown wood sliding. The interior of the house should be well lit, with fractions of the house partially covered by curtains.
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>A </span>
+                    <span className={`transition-all duration-150 ${isHoveringArchStyle ? 'underline' : ''} ${isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>modern, minimalist house</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}> with large windows, and a </span>
+                    <span className={`transition-all duration-150 ${isHoveringExteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>mix of light gray and light brown wood sliding</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>. The </span>
+                    <span className={`transition-all duration-150 ${isHoveringInteriorColor ? 'underline' : ''} ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>interior of the house should be well lit</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>, with fractions of the house partially </span>
+                    <span className={`transition-all duration-150 ${isHoveringCurtainStyle ? 'underline' : ''} ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor ? 'opacity-50' : ''}`}>covered by curtains</span>
+                    <span className={`transition-opacity duration-150 ${isHoveringArchStyle || isHoveringExteriorColor || isHoveringInteriorColor || isHoveringCurtainStyle ? 'opacity-50' : ''}`}>.</span>
                   </p>
                 </div>
               </div>
@@ -192,8 +452,11 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
               {/* Reference images section */}
               <div className="border-b border-black/20 pb-4 pt-1 px-4">
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between">
-                    <p className="text-base text-black font-normal">Reference images</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[4px]">
+                      <img src="/triangle.svg" alt="" className="w-[7px] h-[8px]" />
+                      <p className="text-base text-black font-normal">Architectural style</p>
+                    </div>
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -206,19 +469,22 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
                       className="w-5 h-5 flex items-center justify-center cursor-pointer"
                       onClick={handleAddReferenceImage}
                     >
-                      <Image
-                        src="/images/plus-small.svg"
+                      <img
+                        src="/images/plus-icon.svg"
                         alt="Add"
-                        width={20}
-                        height={20}
+                        className="w-[15px] h-[15px]"
                       />
                     </button>
                   </div>
 
                   {/* Reference image cards */}
-                  <div className="flex flex-col gap-2">
+                  <div
+                    className="flex flex-col gap-2"
+                    onMouseEnter={() => setIsHoveringArchStyle(true)}
+                    onMouseLeave={() => setIsHoveringArchStyle(false)}
+                  >
                     {/* Mobius house card */}
-                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
+                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
                       <div className="flex gap-4 items-center">
                         <div className="w-[77px] h-[38px] rounded-[2px] overflow-hidden relative">
                           <Image
@@ -237,7 +503,7 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
                     </div>
 
                     {/* Interior card */}
-                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px]">
+                    <div className="border border-black/10 rounded-[5px] p-[10px] w-[289px] cursor-pointer">
                       <div className="flex gap-4 items-center">
                         <div className="w-[77px] h-[48px] flex items-center justify-center">
                           <div className="w-[32px] h-[48px] rounded-[3px] border border-[#cfcfcf] overflow-hidden relative">
@@ -259,10 +525,26 @@ export default function ObjectsPanel({ isSelected = true, onSelectObject }: Obje
                 </div>
               </div>
 
-              {/* Property rows */}
-              <PropertyRow label="Exterior Color" hasColorDot />
-              <PropertyRow label="Interior Color" />
-              <PropertyRow label="Curtain style" />
+              {/* Window size section */}
+              <WindowSizeSection />
+
+              {/* Exterior color section */}
+              <ExteriorColorSection
+                onMouseEnter={() => setIsHoveringExteriorColor(true)}
+                onMouseLeave={() => setIsHoveringExteriorColor(false)}
+              />
+
+              {/* Interior color section */}
+              <InteriorColorSection
+                onMouseEnter={() => setIsHoveringInteriorColor(true)}
+                onMouseLeave={() => setIsHoveringInteriorColor(false)}
+              />
+
+              {/* Curtain style section */}
+              <CurtainStyleSection
+                onMouseEnter={() => setIsHoveringCurtainStyle(true)}
+                onMouseLeave={() => setIsHoveringCurtainStyle(false)}
+              />
             </div>
           </div>
         ) : (

@@ -59,7 +59,38 @@ body {
   animation: selection-appear 0.15s ease-out;
 }
 
+@keyframes selection-disappear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.animate-selection-disappear {
+  animation: selection-disappear 0.15s ease-out forwards;
+}
+
 @keyframes thumbnail-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-thumbnail-appear {
+  animation: thumbnail-appear 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #e8e8e8;
+}
+
+@keyframes dot-fade-in {
   from {
     opacity: 0;
   }
@@ -68,8 +99,8 @@ body {
   }
 }
 
-.animate-thumbnail-appear {
-  animation: thumbnail-appear 0.4s ease-out;
+.animate-dot-appear {
+  animation: dot-fade-in 0.3s ease-out;
 }
 
 /* TV Static Loading Animation */
@@ -155,6 +186,6 @@ body {
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size: 150px 150px;
-  opacity: 0.12;
+  opacity: 0.25;
   animation: static-noise 0.2s steps(10) infinite;
 }

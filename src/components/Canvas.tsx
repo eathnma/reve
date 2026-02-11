@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import ObjectsPanel from './ObjectsPanel';
 import { GeneratedImage } from '@/app/page';
@@ -14,14 +14,18 @@ function SelectionHandle({ className }: { className?: string }) {
 interface ObjectDotProps {
   className?: string;
   onClick?: (e: React.MouseEvent) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   dimmed?: boolean;
 }
 
-function ObjectDot({ className, onClick, dimmed }: ObjectDotProps) {
+function ObjectDot({ className, onClick, onMouseEnter, onMouseLeave, dimmed }: ObjectDotProps) {
   return (
     <div
-      className={`absolute w-[17px] h-[17px] ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'} ${dimmed ? 'opacity-40' : ''} ${className}`}
+      className={`absolute w-[17px] h-[17px] transition-opacity duration-200 pointer-events-auto cursor-pointer ${dimmed ? 'opacity-40' : ''} ${className}`}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="w-full h-full rounded-full bg-white border-2 border-black/20 shadow-md" />
     </div>
@@ -33,15 +37,43 @@ interface CanvasProps {
   selectedImageId: string | null;
   onSelectImage: (id: string) => void;
   isGenerating: boolean;
+  onImageEdited?: (imageUrl: string, prompt: string) => void;
+  onEditGeneratingChange?: (isGenerating: boolean) => void;
 }
 
-export default function Canvas({ images, selectedImageId, onSelectImage, isGenerating }: CanvasProps) {
+export default function Canvas({ images, selectedImageId, onSelectImage, isGenerating, onImageEdited, onEditGeneratingChange }: CanvasProps) {
   const [isSelected, setIsSelected] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isHoveringHouseDot, setIsHoveringHouseDot] = useState(false);
+  const [isHoveringSkyDot, setIsHoveringSkyDot] = useState(false);
+  const [isHoveringForestDot, setIsHoveringForestDot] = useState(false);
+  const [isHoveringGroundDot, setIsHoveringGroundDot] = useState(false);
 
   const selectedImage = images.find(img => img.id === selectedImageId);
 
+  // Listen for Escape key to exit selection state
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSelected && !isClosing) {
+        handleClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSelected, isClosing]);
+
+  const handleClose = () => {
+    if (!isSelected || isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsSelected(false);
+      setIsClosing(false);
+    }, 150);
+  };
+
   const handleCanvasClick = () => {
-    setIsSelected(false);
+    handleClose();
   };
 
   const handleImageClick = (e: React.MouseEvent) => {
@@ -65,11 +97,20 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
           className="absolute right-0 top-0 bottom-0 border-l border-[#d9d9d9]"
           onClick={(e) => e.stopPropagation()}
         >
-          <ObjectsPanel isSelected={isSelected} onSelectObject={handleSelectObject} />
+          <ObjectsPanel
+            isSelected={isSelected && !isClosing}
+            onSelectObject={handleSelectObject}
+            isHoveringHouseDot={isHoveringHouseDot}
+            isHoveringSkyDot={isHoveringSkyDot}
+            isHoveringForestDot={isHoveringForestDot}
+            isHoveringGroundDot={isHoveringGroundDot}
+            onImageEdited={onImageEdited}
+            onEditGeneratingChange={onEditGeneratingChange}
+          />
         </div>
 
         {/* Top bar */}
-        <div className="absolute left-0 top-0 right-[319px] flex items-center justify-between px-[30px] py-4" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute left-0 top-0 right-[319px] flex items-center justify-between px-6 py-6" onClick={(e) => e.stopPropagation()}>
           <button className="w-5 h-5 flex items-center justify-center">
             <img
               src="/images/arrow-icon.svg"
@@ -105,29 +146,58 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
               />
             )}
 
-            {/* Object dots - positioned as percentages to follow image on resize */}
-            <ObjectDot className="left-[42.88%] top-[12.19%]" dimmed={isSelected} />
-            <ObjectDot className="left-[86.85%] top-[29.09%]" dimmed={isSelected} />
-            <ObjectDot className="left-[49.61%] top-[64.27%]" onClick={handleImageClick} />
-            <ObjectDot className="left-[49.45%] top-[90.58%]" dimmed={isSelected} />
+            {/* Object dots - only show for the first/original image */}
+            {!selectedImageId && (
+              <div className="animate-dot-appear">
+                {/* Sky - top */}
+                <ObjectDot
+                  className="left-[42.88%] top-[12.19%]"
+                  dimmed={isSelected}
+                  onMouseEnter={() => setIsHoveringSkyDot(true)}
+                  onMouseLeave={() => setIsHoveringSkyDot(false)}
+                />
+                {/* Forest - right */}
+                <ObjectDot
+                  className="left-[86.85%] top-[29.09%]"
+                  dimmed={isSelected}
+                  onMouseEnter={() => setIsHoveringForestDot(true)}
+                  onMouseLeave={() => setIsHoveringForestDot(false)}
+                />
+                {/* House - middle */}
+                <ObjectDot
+                  className="left-[49.61%] top-[68.7%]"
+                  onClick={handleImageClick}
+                  onMouseEnter={() => setIsHoveringHouseDot(true)}
+                  onMouseLeave={() => setIsHoveringHouseDot(false)}
+                />
+                {/* Ground - bottom */}
+                <ObjectDot
+                  className="left-[49.45%] top-[90.58%]"
+                  dimmed={isSelected}
+                  onMouseEnter={() => setIsHoveringGroundDot(true)}
+                  onMouseLeave={() => setIsHoveringGroundDot(false)}
+                />
+              </div>
+            )}
 
-            {/* Selection box - only show when selected */}
-            {isSelected && (
-              <div className="absolute left-[4.23%] bottom-[7.48%] w-[92.96%] h-[42.66%] pointer-events-none animate-selection-appear">
+            {/* Selection box - only show when selected and on first image */}
+            {(isSelected || isClosing) && !selectedImageId && (
+              <div className={`absolute left-[4.23%] bottom-[7.48%] w-[92.96%] h-[42.66%] pointer-events-none ${isClosing ? 'animate-selection-disappear' : 'animate-selection-appear'}`}>
                 <div className="absolute inset-0 border border-white" />
                 <SelectionHandle className="-left-[5px] -top-[5px]" />
                 <SelectionHandle className="-left-[5px] -bottom-[5px]" />
                 <SelectionHandle className="-right-[5px] -top-[5px]" />
                 <SelectionHandle className="-right-[5px] -bottom-[5px]" />
 
-                {/* Label tooltip - 8px above selection box */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
-                  <p className="text-[14px] text-white font-normal whitespace-nowrap">
+                {/* Label tooltip - top left of selection box */}
+                <div className="absolute left-0 bottom-[calc(100%+8px)] bg-[#484848] rounded-[2px] px-[6px] py-1">
+                  <p className="text-[16px] text-white font-normal whitespace-nowrap">
                     House, Mobius House
                   </p>
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>
@@ -155,7 +225,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
           {images.map((image) => (
             <div
               key={image.id}
-              className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden animate-thumbnail-appear ${
+              className={`w-[61px] h-[61px] relative cursor-pointer rounded-[8px] overflow-hidden bg-[#e8e8e8] ${
                 selectedImageId === image.id ? 'ring-2 ring-[#d3e2f5] ring-offset-2' : ''
               }`}
               onClick={() => onSelectImage(image.id)}
@@ -163,7 +233,7 @@ export default function Canvas({ images, selectedImageId, onSelectImage, isGener
               <img
                 src={image.url}
                 alt={image.prompt}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover animate-thumbnail-appear"
               />
             </div>
           ))}

@@ -66,6 +66,7 @@ export function useReveApi(): UseReveApiReturn {
 
       return result;
     } catch (err) {
+      console.error('Reve API Error:', err);
       const error = err instanceof Error ? err : new Error('Unknown error occurred');
       setState(prev => ({
         ...prev,
@@ -125,12 +126,12 @@ export function useReveApi(): UseReveApiReturn {
   }, [handleRequest]);
 
   const editImageWithFile = useCallback(async (
-    prompt: string,
+    editInstruction: string,
     file: File,
-    options?: Omit<EditImageRequest, 'prompt' | 'image'>
+    options?: Omit<EditImageRequest, 'edit_instruction' | 'reference_image'>
   ): Promise<ReveImageResponse | null> => {
     const base64 = await fileToBase64(file);
-    return editImage({ prompt, image: base64, ...options });
+    return editImage({ edit_instruction: editInstruction, reference_image: base64, ...options });
   }, [editImage]);
 
   const remixImageWithFiles = useCallback(async (
