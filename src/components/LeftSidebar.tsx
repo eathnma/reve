@@ -5,11 +5,11 @@ import Image from 'next/image';
 export default function LeftSidebar() {
   return (
     <div className="bg-white h-screen w-[50px] flex-shrink-0 border-r-[0.5px] border-[#d9d9d9]">
-      <div className="flex flex-col gap-6 items-center pt-[23px] px-[15px]">
+      <div className="flex flex-col gap-6 items-start pt-[23px] pl-[15px]">
         <button className="w-5 h-5 flex items-center justify-center">
           <Image
-            src="/images/menu-icon.svg"
-            alt="Menu"
+            src="/images/reve.svg"
+            alt="Reve"
             width={20}
             height={20}
           />

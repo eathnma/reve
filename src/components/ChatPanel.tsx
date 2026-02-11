@@ -9,12 +9,10 @@ export default function ChatPanel() {
       <div className="flex flex-col gap-4 w-full">
         {/* Logo */}
         <div className="flex flex-col items-start p-[10px] h-[43px] w-full">
-          <Image
-            src="/images/reve-logo.svg"
+          <img
+            src="/images/reve.svg"
             alt="Reve"
-            width={45}
-            height={16}
-            className="object-contain"
+            className="h-[16px] w-auto"
           />
         </div>
 
